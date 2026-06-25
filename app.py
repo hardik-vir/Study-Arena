@@ -105,8 +105,9 @@ def update_stats():
     
     return {"status": "error"}, 400
 
+with app.app_context():
+    db.create_all()
+
+# Leave this at the very bottom
 if __name__ == '__main__':
-    # This automatically creates the 'arena.db' file the very first time you run the script!
-    with app.app_context():
-        db.create_all() 
     app.run(debug=True)
