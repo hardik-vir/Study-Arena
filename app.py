@@ -6,7 +6,7 @@ import os
 
 app = Flask(__name__)
 # The secret key keeps user sessions secure
-app.config['SECRET_KEY'] = 'super_secret_arena_key_123' 
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback_secret_key')
 
 # NEW: Find the exact folder path where this code lives on the Render server
 basedir = os.path.abspath(os.path.dirname(__file__))
