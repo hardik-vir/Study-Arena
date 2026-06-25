@@ -223,45 +223,45 @@
         }
 
         /* 8. Custom Slide-in Notification */
-        .notification {
-            position: fixed;
-            top: 30px;
-            right: 30px;
-            background: rgba(16, 185, 129, 0.9);
-            backdrop-filter: blur(10px);
-            color: white;
-            padding: 16px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            transform: translateX(150%);
-            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            z-index: 1000;
+        .tab-content.active {
+            display: block;
         }
 
-        .notification.show {
-            transform: translateX(0);
-        }
+        /* --- MOBILE RESPONSIVENESS --- */
+        @media (max-width: 600px) {
+            /* Make the main card take up the whole screen width */
+            .arena-card {
+                width: 95%;
+                padding: 20px;
+                margin-top: 10px;
+            }
+            
+            /* Make the timer ring shrink to fit the screen */
+            svg {
+                max-width: 100%;
+                height: auto;
+            }
 
-        .divider {
-            height: 1px;
-            background: rgba(255, 255, 255, 0.05);
-            margin: 20px 0;
-            width: 100%;
+            /* Stack the time-selection buttons so they don't squish */
+            .time-buttons {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                justify-content: center;
+            }
+            
+            /* Adjust the top navigation tabs for touch targets */
+            .tabs {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+            .tab-btn {
+                padding: 10px;
+                font-size: 14px;
+                flex: 1; /* Makes tabs fill the space evenly */
+            }
         }
-
-        /* Stats styles */
-        .stat-block {
-            background: rgba(0,0,0,0.2);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .stat-block strong { color: #f8fafc; font-size: 20px; }
     </style>
 </head>
 <body>
