@@ -31,6 +31,8 @@ login_manager.login_view = 'login'
 
 # --- DATABASE MODELS ---
 class User(UserMixin, db.Model):
+    __tablename__ = 'arena_users' # NEW: Forces Postgres to create a brand new, updated table!
+    
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
