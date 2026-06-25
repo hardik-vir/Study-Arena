@@ -121,13 +121,16 @@
         <!-- PAGE 1: TIMER -->
         <div id="timer-view" class="tab-content active">
             <div class="time-buttons">
-                <!-- Temporary 1 minute button for you to test the database! -->
-                <button class="time-btn" onclick="setTime(1)" style="background: #10b981;">1 Min (Test)</button>
-                
-                <!-- The real buttons -->
+                <!-- Restored the standard buttons and removed the test button -->
                 <button class="time-btn" onclick="setTime(10)">10 Min</button>
                 <button class="time-btn" onclick="setTime(30)">30 Min</button>
                 <button class="time-btn" onclick="setTime(60)">1 Hour</button>
+            </div>
+
+            <!-- NEW: Custom Time Input -->
+            <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 25px;">
+                <input type="number" id="custom-minutes" placeholder="Custom (mins)" min="1" style="background: #0f172a; color: white; border: 1px solid #334155; padding: 8px 12px; border-radius: 6px; width: 120px; outline: none; font-size: 14px;">
+                <button class="time-btn" onclick="setCustomTime()" style="background: #38bdf8; color: #0f172a; font-weight: bold;">Set</button>
             </div>
             
             <div class="timer-display">
@@ -233,6 +236,19 @@
             timeLeft = duration;
             successMsg.style.display = 'none'; // THE FIX: Hide message if they change time
             updateDisplay();
+        }
+
+        // NEW: Function to handle custom time input
+        function setCustomTime() {
+            if (isRunning) return; // Prevent changing time while timer is running
+            const input = document.getElementById('custom-minutes');
+            const mins = parseInt(input.value);
+            
+            // Only update if they entered a valid number greater than 0
+            if (mins && mins > 0) {
+                setTime(mins);
+                input.value = ''; // Clear the input box cleanly
+            }
         }
 
         function toggleTimer() {
