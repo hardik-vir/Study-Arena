@@ -317,20 +317,28 @@
     <!-- PAGE 2: LEADERBOARD -->
     <div id="leaderboard-view" class="tab-content arena-card">
         <h2 style="color: #38bdf8; margin-top: 0; font-weight: 800;">Global Rankings</h2>
-        <p style="color: #94a3b8; margin-bottom: 25px;">Connect database to see real players.</p>
+        <p style="color: #94a3b8; margin-bottom: 25px;">The most focused players in the Arena.</p>
         
+        <!-- NEW: Dynamic loop using Jinja -->
+        {% for player in top_users %}
         <div class="stat-block">
-            <span style="font-size: 18px;">👑 CodeMaster99</span>
-            <strong>42 hrs</strong>
+            <span style="font-size: 18px;">
+                <!-- Special icons for top 3 -->
+                {% if loop.index == 1 %}👑
+                {% elif loop.index == 2 %}🥈
+                {% elif loop.index == 3 %}🥉
+                {% else %}<span style="color: #64748b; font-weight: bold; margin-right: 8px;">#{{ loop.index }}</span>
+                {% endif %}
+                
+                {{ player.username }}
+            </span>
+            <!-- Convert total minutes into Hours and Minutes format -->
+            <strong>{{ player.total_focus_time // 60 }}h {{ player.total_focus_time % 60 }}m</strong>
         </div>
-        <div class="stat-block">
-            <span style="font-size: 18px;">🥈 StudyNinja</span>
-            <strong>38 hrs</strong>
-        </div>
-        <div class="stat-block">
-            <span style="font-size: 18px;">🥉 FocusBot</span>
-            <strong>31 hrs</strong>
-        </div>
+        {% else %}
+        <!-- What to show if the database is totally empty -->
+        <p style="color: #94a3b8;">No players on the leaderboard yet. Be the first!</p>
+        {% endfor %}
     </div>
 
     <!-- PAGE 3: PROFILE -->

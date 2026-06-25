@@ -8,10 +8,18 @@ app = Flask(__name__)
 # The secret key keeps user sessions secure
 app.config['SECRET_KEY'] = 'super_secret_arena_key_123' 
 
-# Grab the database URL from Render's environment, or default to SQLite
-database_url = os.environ.get('DATABASE_URL', 'sqlite:///arena.db')
+# NEW: Find the exact folder path where this code lives on the Render server
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+# NEW: Combine the exact folder path with the arena.db file name
+default_sqlite_url = 'sqlite:///' + os.path.join(basedir, 'arena.db')
+
+# Grab the database URL from Render's environment, or default to the absolute SQLite path
+database_url = os.environ.get('DATABASE_URL', default_sqlite_url)
+
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
+    
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 
 # Initialize our tools
@@ -38,8 +46,11 @@ def load_user(user_id):
 @app.route('/')
 @login_required # This magic word forces users to log in before seeing the timer!
 def home():
-    # We pass the currently logged-in user to the HTML so we can display their specific name/stats
-    return render_template('index.html', user=current_user)
+    # NEW: Fetch the top 10 users sorted by total_focus_time in descending order
+    top_users = User.query.order_by(User.total_focus_time.desc()).limit(10).all()
+    
+    # Pass BOTH the current_user and the top_users list to the HTML
+    return render_template('index.html', user=current_user, top_users=top_users)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
