@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Study Arena</title>
+    <style>
+        /* --- PREMIUM UI/UX CSS --- */
+        
+        /* 1. Deep animated gradient background */
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1e2f 100%);
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* 2. Glassmorphism Navbar */
+        .navbar {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 20px 0;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 30px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar h1 {
+            margin: 0;
+            font-size: 26px;
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            letter-spacing: 3px;
+            font-weight: 800;
+        }
+
+        /* 3. Smooth Tab Navigation */
+        .tab-menu {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            background: rgba(30, 41, 59, 0.5);
+            padding: 8px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-btn {
+            background: transparent;
+            color: #94a3b8;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .tab-btn:hover { 
+            color: #f8fafc; 
+            transform: translateY(-2px);
+        }
+        
+        .tab-btn.active {
+            background: #38bdf8;
+            color: #0f172a;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+        }
+
+        /* 4. Glassmorphism Main Card */
+        .arena-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .tab-content {
+            display: none;
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .tab-content.active { display: block; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            color: #94a3b8;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        /* 5. Interactive Buttons */
+        .time-options, .custom-time {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: #cbd5e1;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .option-btn:hover { 
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .custom-time input {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 10px;
+            border-radius: 12px;
+            width: 100px;
+            text-align: center;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .custom-time input:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+        }
+
+        /* 6. Circular Progress Ring Timer */
+        .progress-container {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin: 30px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .progress-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: rotate(-90deg); /* Start at top */
+        }
+
+        .progress-ring__circle {
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        .timer-display {
+            font-size: 56px;
+            font-weight: 800;
+            color: #f8fafc;
+            font-family: monospace;
+            z-index: 2;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        /* 7. Action Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 16px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn:hover { 
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn:active { transform: translateY(1px); }
+
+        .btn-reset { 
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            box-shadow: 0 4px 15px rgba(100, 116, 139, 0.3);
+        }
+        
+        .btn-reset:hover {
+            box-shadow: 0 8px 25px rgba(100, 116, 139, 0.4);
+        }
+
+        /* 8. Custom Slide-in Notification */
+        .notification {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: rgba(16, 185, 129, 0.9);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transform: translateX(150%);
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.05);
+            margin: 20px 0;
+            width: 100%;
+        }
+
+        /* Stats styles */
+        .stat-block {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-block strong { color: #f8fafc; font-size: 20px; }
+    </style>
+</head>
+<body>
+
+    <!-- Notification Toast -->
+    <div id="notification" class="notification">🎉 Focus session complete! Time to level up.</div>
+
+    <div class="navbar">
+        <h1>GLOBAL STUDY ARENA</h1>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-menu">
+        <button class="tab-btn active" onclick="switchTab('timer-view', this)">Timer</button>
+        <button class="tab-btn" onclick="switchTab('leaderboard-view', this)">Leaderboard</button>
+        <button class="tab-btn" onclick="switchTab('profile-view', this)">Profile</button>
+    </div>
+
+    <!-- PAGE 1: TIMER -->
+    <div id="timer-view" class="tab-content active arena-card">
+        <div class="section-title">Select Focus Limit</div>
+
+        <div class="time-options">
+            <button class="option-btn" onclick="setTimer(10)">10 Min</button>
+            <button class="option-btn" onclick="setTimer(30)">30 Min</button>
+            <button class="option-btn" onclick="setTimer(60)">1 Hour</button>
+        </div>
+
+        <div class="custom-time">
+            <input type="number" id="customInput" placeholder="Custom" min="1">
+            <button class="option-btn" onclick="setCustomTimer()">Set</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- NEW: Circular Progress Ring -->
+        <div class="progress-container">
+            <svg class="progress-ring" width="220" height="220">
+                <!-- Background track circle -->
+                <circle stroke="rgba(255,255,255,0.05)" stroke-width="8" fill="transparent" r="100" cx="110" cy="110"/>
+                <!-- Colored progress circle -->
+                <circle id="progressPath" class="progress-ring__circle" stroke="#10b981" stroke-width="8" stroke-linecap="round" fill="transparent" r="100" cx="110" cy="110"/>
+            </svg>
+            <div class="timer-display">10:00</div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="startBtn">Start Focus</button>
+            <button class="btn btn-reset" id="resetBtn">Reset</button>
+        </div>
+    </div>
+
+    <!-- PAGE 2: LEADERBOARD -->
+    <div id="leaderboard-view" class="tab-content arena-card">
+        <h2 style="color: #38bdf8; margin-top: 0; font-weight: 800;">Global Rankings</h2>
+        <p style="color: #94a3b8; margin-bottom: 25px;">Connect database to see real players.</p>
+        
+        <div class="stat-block">
+            <span style="font-size: 18px;">👑 CodeMaster99</span>
+            <strong>42 hrs</strong>
+        </div>
+        <div class="stat-block">
+            <span style="font-size: 18px;">🥈 StudyNinja</span>
+            <strong>38 hrs</strong>
+        </div>
+        <div class="stat-block">
+            <span style="font-size: 18px;">🥉 FocusBot</span>
+            <strong>31 hrs</strong>
+        </div>
+    </div>
+
+    <!-- PAGE 3: PROFILE -->
+    <div id="profile-view" class="tab-content arena-card">
+        <h2 style="color: #10b981; margin-top: 0; font-weight: 800;">Welcome, {{ user.username }}!</h2>
+        <p style="color: #94a3b8; margin-bottom: 25px;">Your progress is secured in the Vault.</p>
+        
+        <div class="stat-block">
+            <span>🔥 Current Streak</span>
+            <strong>{{ user.streak }} days</strong>
+        </div>
+        <div class="stat-block">
+            <span>⏱️ Total Focus Time</span>
+            <!-- Math inside HTML! Converts total minutes into hours and minutes -->
+            <strong>{{ user.total_focus_time // 60 }}h {{ user.total_focus_time % 60 }}m</strong>
+        </div>
+        <div class="stat-block">
+            <span>⭐ Level</span>
+            <strong>Novice</strong>
+        </div>
+
+        <a href="/logout" style="color: #ef4444; font-size: 14px; text-decoration: none; margin-top: 20px; display: inline-block;">Leave Arena (Logout)</a>
+    </div>
+
+    <!-- --- JAVASCRIPT --- -->
+    <script>
+        // --- TAB SWITCHING ---
+        function switchTab(tabId, clickedButton) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            clickedButton.classList.add('active');
+        }
+
+        // --- TIMER & CIRCLE ANIMATION ---
+        let currentTotalSeconds = 10 * 60;
+        let timeLeft = currentTotalSeconds; 
+        let timerId = null;     
+        let isRunning = false;  
+
+        const timerDisplay = document.querySelector('.timer-display');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const customInput = document.getElementById('customInput');
+        const notification = document.getElementById('notification');
+        
+        // SVG Circle Logic
+        const circle = document.getElementById('progressPath');
+        const radius = circle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+        
+        circle.style.strokeDasharray = `${circumference} ${circumference}`;
+        circle.style.strokeDashoffset = 0;
+
+        function updateProgressCircle() {
+            const percent = timeLeft / currentTotalSeconds;
+            const offset = circumference - percent * circumference;
+            circle.style.strokeDashoffset = offset;
+            
+            // Change color smoothly from green to yellow to red based on time
+            if(percent > 0.5) circle.style.stroke = "#10b981"; // Green
+            else if(percent > 0.2) circle.style.stroke = "#f59e0b"; // Yellow
+            else circle.style.stroke = "#ef4444"; // Red
+        }
+
+        function showNotification() {
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000); // Hide after 4 seconds
+        }
+
+        function updateDisplay() {
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            if (minutes < 10) minutes = "0" + minutes;
+            if (seconds < 10) seconds = "0" + seconds;
+            timerDisplay.textContent = minutes + ":" + seconds;
+            updateProgressCircle();
+        }
+
+        function setTimer(minutes) {
+            stopClock(); 
+            currentTotalSeconds = minutes * 60;
+            timeLeft = currentTotalSeconds;
+            updateDisplay();
+        }
+
+        function setCustomTimer() {
+            let customMinutes = parseInt(customInput.value);
+            if (customMinutes > 0) {
+                setTimer(customMinutes);
+                customInput.value = ''; 
+            }
+        }
+
+        function stopClock() {
+            clearInterval(timerId);
+            isRunning = false;
+            startBtn.textContent = "Start Focus";
+            startBtn.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
+            startBtn.style.boxShadow = "0 4px 15px rgba(16, 185, 129, 0.3)";
+        }
+
+        // NEW: Function to send data to Python
+        async function saveProgress(minutesCompleted) {
+            try {
+                const response = await fetch('/update_stats', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ minutes: minutesCompleted })
+                });
+                
+                const data = await response.json();
+                if(data.status === "success") {
+                    console.log("Database updated successfully!");
+                    // Force a page reload so the Profile tab updates with the new data
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 4000); // Waits 4 seconds so the user can read the success notification
+                }
+            } catch (error) {
+                console.error("Error saving progress:", error);
+            }
+        }
+
+        startBtn.addEventListener('click', function() {
+            if (isRunning) {
+                stopClock();
+            } else {
+                isRunning = true;
+                startBtn.textContent = "Pause";
+                startBtn.style.background = "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)";
+                startBtn.style.boxShadow = "0 4px 15px rgba(239, 68, 68, 0.3)";
+
+                timerId = setInterval(function() {
+                    timeLeft--;
+                    updateDisplay();
+
+                    if (timeLeft <= 0) {
+                        stopClock();
+                        showNotification();
+                        
+                        // NEW: Calculate how many minutes were just completed and send to Python
+                        let minutesFinished = currentTotalSeconds / 60;
+                        saveProgress(minutesFinished);
+                        
+                        timeLeft = currentTotalSeconds; 
+                        updateDisplay();
+                    }
+                }, 1000);
+            }
+        });
+
+        resetBtn.addEventListener('click', function() {
+            stopClock();
+            timeLeft = currentTotalSeconds; 
+            updateDisplay();
+        });
+
+        updateDisplay();
+    </script>
+</body>
+</html>

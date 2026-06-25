@@ -1,0 +1,5 @@
+Flask3.0.0
+Flask-SQLAlchemy3.1.1
+Flask-Login0.6.3
+Werkzeug3.0.1
+gunicorn==21.2.0

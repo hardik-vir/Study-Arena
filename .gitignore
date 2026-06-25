@@ -1,0 +1,9 @@
+This tells GitHub to ignore your local database and temporary files
+
+NEVER upload real passwords or user data to public GitHub!
+
+*.db
+instance/
+pycache/
+venv/
+.env
