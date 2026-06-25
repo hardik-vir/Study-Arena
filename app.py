@@ -2,12 +2,18 @@ from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+import os
 
 app = Flask(__name__)
 # The secret key keeps user sessions secure
 app.config['SECRET_KEY'] = 'super_secret_arena_key_123' 
-# This tells Python to create a local database file named arena.db
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:mysecretpassword@localhost/arena_db'
+
+# Grab the database URL from Render's environment, or default to SQLite
+database_url = os.environ.get('DATABASE_URL', 'sqlite:///arena.db')
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+
 # Initialize our tools
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
@@ -105,9 +111,8 @@ def update_stats():
     
     return {"status": "error"}, 400
 
-with app.app_context():
-    db.create_all()
-
-# Leave this at the very bottom
 if __name__ == '__main__':
+    # This automatically creates the 'arena.db' file the very first time you run the script!
+    with app.app_context():
+        db.create_all() 
     app.run(debug=True)
