@@ -343,16 +343,16 @@
 
     <!-- PAGE 3: PROFILE -->
     <div id="profile-view" class="tab-content arena-card">
-        <h2 style="color: #10b981; margin-top: 0; font-weight: 800;">Welcome, {{ user.username }}!</h2>
-        <p style="color: #94a3b8; margin-bottom: 25px;">Your progress is secured in the Vault.</p>
+        <h2 style="color: #10b981; margin-top: 0; font-weight: 800;">{{ user.username }}'s Profile</h2>
+        
+        <!-- NEW: Dynamic Rank Display -->
+        <div class="stat-block" style="text-align: center; margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 12px;">
+            <span style="color: #94a3b8; font-size: 14px; display: block; margin-bottom: 5px;">Current Rank</span>
+            <strong style="color: #10b981; font-size: 24px;">{{ user.rank }}</strong>
+        </div>
         
         <div class="stat-block">
-            <span>🔥 Current Streak</span>
-            <strong>{{ user.streak }} days</strong>
-        </div>
-        <div class="stat-block">
-            <span>⏱️ Total Focus Time</span>
-            <!-- Math inside HTML! Converts total minutes into hours and minutes -->
+            <span style="color: #94a3b8;">Total Focus Time:</span>
             <strong>{{ user.total_focus_time // 60 }}h {{ user.total_focus_time % 60 }}m</strong>
         </div>
         <div class="stat-block">

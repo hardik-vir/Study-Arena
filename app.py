@@ -7,7 +7,6 @@ import os
 app = Flask(__name__)
 # The secret key keeps user sessions secure
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback_secret_key')
-
 # NEW: Find the exact folder path where this code lives on the Render server
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -32,9 +31,20 @@ login_manager.login_view = 'login' # Where to send users if they try to access t
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False) # We will save a scrambled hash here
-    total_focus_time = db.Column(db.Integer, default=0) # Tracked in minutes
-    streak = db.Column(db.Integer, default=0)
+    password = db.Column(db.String(150), nullable=False)
+    total_focus_time = db.Column(db.Integer, default=0)
+
+    # NEW: This automatically calculates the user's rank!
+    @property
+    def rank(self):
+        if self.total_focus_time < 60:
+            return "Novice 🥉"
+        elif self.total_focus_time < 600:
+            return "Scholar 🥈"
+        elif self.total_focus_time < 3000:
+            return "Deep Work Master 🥇"
+        else:
+            return "Grandmaster 👑"
 
 # Helps Flask remember who is currently logged in
 @login_manager.user_loader
