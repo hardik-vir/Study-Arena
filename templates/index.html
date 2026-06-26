@@ -307,7 +307,8 @@
         const successDing = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
         successDing.volume = 0.6; 
 
-        let duration = 30 * 60, timeLeft = duration, timerId = null, isRunning = false, endTime = null; 
+        // THE FIX: Add pingInterval to your variables
+        let duration = 30 * 60, timeLeft = duration, timerId = null, isRunning = false, endTime = null, pingInterval = null; 
         const timeText = document.getElementById('time-left'), progressRing = document.getElementById('progress-ring');
         const startBtn = document.getElementById('start-btn'); 
         const circumference = 2 * Math.PI * 90;
@@ -336,6 +337,8 @@
 
         function resetTimer() {
             if (timerId) clearInterval(timerId);
+            // THE FIX: Stop pinging if timer is reset
+            if (pingInterval) clearInterval(pingInterval); 
             isRunning = false;
             timeLeft = duration;
             startBtn.innerText = 'Start Focus';
@@ -344,13 +347,26 @@
 
         function toggleTimer() {
             if (isRunning) {
-                clearInterval(timerId); startBtn.innerText = 'Start Focus'; isRunning = false;
+                clearInterval(timerId); 
+                // THE FIX: Stop pinging when paused
+                if (pingInterval) clearInterval(pingInterval); 
+                startBtn.innerText = 'Start Focus'; isRunning = false;
             } else {
                 endTime = Date.now() + (timeLeft * 1000);
+                
+                // THE FIX: Start the Heartbeat (Pings every 5 minutes to prevent Render sleep)
+                pingInterval = setInterval(() => {
+                    fetch('/ping').catch(e => console.log("Heartbeat missed"));
+                }, 5 * 60 * 1000);
+
                 timerId = setInterval(() => {
                     timeLeft = Math.round((endTime - Date.now()) / 1000);
                     if (timeLeft <= 0) {
-                        timeLeft = 0; updateDisplay(); clearInterval(timerId); isRunning = false; startBtn.innerText = 'Start Focus';
+                        timeLeft = 0; updateDisplay(); clearInterval(timerId); 
+                        // THE FIX: Stop pinging when finished
+                        if (pingInterval) clearInterval(pingInterval);
+                        
+                        isRunning = false; startBtn.innerText = 'Start Focus';
                         
                         successDing.play().catch(e => console.log("Sound blocked"));
                         showToast(); 

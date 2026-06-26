@@ -201,6 +201,11 @@ def delete_account():
         db.session.rollback()
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+# THE FIX: Heartbeat route to keep the free server awake
+@app.route('/ping')
+def ping():
+    return jsonify({'status': 'awake'})
+
 with app.app_context():
     db.create_all()
 
