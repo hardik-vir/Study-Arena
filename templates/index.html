@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deep Work Arena</title>
+    <!-- NEW: Import Chart.js for Insights -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { 
             background-color: #0f172a; 
@@ -11,9 +13,33 @@
             font-family: sans-serif; 
             display: flex; 
             justify-content: center; 
-            padding-top: 50px; 
+            padding-top: 100px; /* Pushed down to make room for navbar */
             margin: 0; 
         }
+        
+        /* NEW: Top Navigation Bar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #1e293b;
+            padding: 15px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 1000;
+        }
+        
+        .navbar-brand {
+            color: #f8fafc;
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin: 0;
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+        }
+
         .arena-card { 
             background: #1e293b; 
             padding: 40px; 
@@ -21,18 +47,22 @@
             width: 400px; 
             box-shadow: 0 4px 6px rgba(0,0,0,0.3); 
         }
+        
+        /* FIX: Align tabs properly */
         .tabs { 
             display: flex; 
-            margin-bottom: 20px; 
+            justify-content: space-around; /* Spaced out evenly */
+            margin-bottom: 25px; 
             border-bottom: 1px solid #334155; 
         }
         .tab-btn { 
             background: none; 
             border: none; 
             color: #94a3b8; 
-            padding: 10px 20px; 
+            padding: 10px 15px; 
             cursor: pointer; 
             font-size: 16px; 
+            font-weight: bold;
         }
         .tab-btn.active { 
             color: #38bdf8; 
@@ -41,7 +71,7 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
-        .timer-display { text-align: center; margin: 30px 0; position: relative; }
+        .timer-display { text-align: center; margin: 20px 0; position: relative; }
         .time-text { 
             position: absolute; 
             top: 50%; left: 50%; 
@@ -75,6 +105,20 @@
         }
         .time-btn:hover { background: #475569; }
         
+        /* NEW: Dropdown Styling */
+        .category-select {
+            width: 100%;
+            background: #0f172a;
+            color: #f8fafc;
+            border: 1px solid #334155;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 15px;
+            margin-bottom: 20px;
+            outline: none;
+            cursor: pointer;
+        }
+        
         .stat-block { 
             display: flex; 
             justify-content: space-between; 
@@ -86,7 +130,6 @@
         .logout-btn { background: #ef4444; margin-top: 20px; }
         .logout-btn:hover { background: #dc2626; }
 
-        /* THE FIX: Hide the success message by default */
         #success-message { 
             display: none; 
             color: #10b981; 
@@ -96,36 +139,25 @@
             margin-bottom: 15px;
         }
 
-        /* NEW: Visually appealing header style */
-        .main-title {
-            text-align: center;
-            color: #f8fafc;
-            font-size: 28px;
-            font-weight: 800;
-            margin-top: 0;
-            margin-bottom: 25px;
-            letter-spacing: 1px;
-            text-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
-        }
-
         svg { transform: rotate(-90deg); }
         circle { transition: stroke-dashoffset 1s linear; }
 
         /* --- MOBILE RESPONSIVENESS --- */
         @media (max-width: 600px) {
-            .arena-card { width: 95%; padding: 20px; margin-top: 10px; }
+            .arena-card { width: 95%; padding: 20px; margin-top: -10px; }
             svg { max-width: 100%; height: auto; }
-            .time-buttons { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-            .tabs { flex-direction: row; flex-wrap: wrap; gap: 5px; }
-            .tab-btn { padding: 10px; font-size: 14px; flex: 1; }
+            .time-buttons { flex-wrap: wrap; }
         }
     </style>
 </head>
 <body>
-    <div class="arena-card">
-        <!-- NEW: The Main Header -->
-        <h1 class="main-title">Deep Work Arena</h1>
+    
+    <!-- NEW: Professional Top Navbar -->
+    <nav class="navbar">
+        <h1 class="navbar-brand">Deep Work Arena</h1>
+    </nav>
 
+    <div class="arena-card">
         <!-- NAVIGATION TABS -->
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('timer')">Timer</button>
@@ -135,14 +167,22 @@
 
         <!-- PAGE 1: TIMER -->
         <div id="timer-view" class="tab-content active">
+            
+            <!-- NEW: Spotify Wrapped Insights Category Picker -->
+            <select id="task-category" class="category-select">
+                <option value="Coding">💻 Coding</option>
+                <option value="Studying">📚 Studying</option>
+                <option value="Reading">📖 Reading</option>
+                <option value="Work">💼 Work</option>
+                <option value="General">⚡ General Focus</option>
+            </select>
+
             <div class="time-buttons">
-                <!-- Restored the standard buttons and removed the test button -->
                 <button class="time-btn" onclick="setTime(10)">10 Min</button>
                 <button class="time-btn" onclick="setTime(30)">30 Min</button>
                 <button class="time-btn" onclick="setTime(60)">1 Hour</button>
             </div>
 
-            <!-- NEW: Custom Time Input -->
             <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 25px;">
                 <input type="number" id="custom-minutes" placeholder="Custom (mins)" min="1" style="background: #0f172a; color: white; border: 1px solid #334155; padding: 8px 12px; border-radius: 6px; width: 120px; outline: none; font-size: 14px;">
                 <button class="time-btn" onclick="setCustomTime()" style="background: #38bdf8; color: #0f172a; font-weight: bold;">Set</button>
@@ -153,11 +193,9 @@
                     <circle cx="100" cy="100" r="90" fill="none" stroke="#334155" stroke-width="10"></circle>
                     <circle id="progress-ring" cx="100" cy="100" r="90" fill="none" stroke="#38bdf8" stroke-width="10" stroke-dasharray="565" stroke-dashoffset="0"></circle>
                 </svg>
-                <!-- Default starting text matches the middle 30 min option -->
                 <div class="time-text" id="time-left">30:00</div>
             </div>
             
-            <!-- THE FIX: Give the message an ID so JavaScript can control it -->
             <p id="success-message">🎉 Focus session complete! Time to level up.</p>
 
             <button class="btn" id="start-btn" onclick="toggleTimer()">Start Focus</button>
@@ -165,8 +203,8 @@
 
         <!-- PAGE 2: LEADERBOARD -->
         <div id="leaderboard-view" class="tab-content">
-            <h2 style="color: #38bdf8; margin-top: 0; font-weight: 800;">Global Rankings</h2>
-            <p style="color: #94a3b8; margin-bottom: 25px;">The most focused players in the Arena.</p>
+            <h2 style="color: #38bdf8; margin-top: 0; font-weight: 800; text-align: center;">Global Rankings</h2>
+            <p style="color: #94a3b8; margin-bottom: 25px; text-align: center;">The most focused players in the Arena.</p>
             
             {% for player in top_users %}
             <div class="stat-block">
@@ -178,17 +216,16 @@
                     {% endif %}
                     {{ player.username }}
                 </span>
-                <!-- Safe rendering fallback to (or 0) to guarantee it never crashes -->
                 <strong>{{ (player.total_focus_time or 0) // 60 }}h {{ (player.total_focus_time or 0) % 60 }}m</strong>
             </div>
             {% else %}
-            <p style="color: #94a3b8;">No players on the leaderboard yet. Be the first!</p>
+            <p style="color: #94a3b8; text-align: center;">No players yet. Be the first!</p>
             {% endfor %}
         </div>
 
         <!-- PAGE 3: PROFILE -->
         <div id="profile-view" class="tab-content">
-            <h2 style="color: #10b981; margin-top: 0; font-weight: 800;">{{ user.username }}'s Profile</h2>
+            <h2 style="color: #10b981; margin-top: 0; font-weight: 800; text-align: center;">{{ user.username }}</h2>
             
             <div class="stat-block" style="text-align: center; margin-bottom: 20px; display: block;">
                 <span style="color: #94a3b8; font-size: 14px; display: block; margin-bottom: 5px;">Current Rank</span>
@@ -197,7 +234,6 @@
             
             <div class="stat-block">
                 <span style="color: #94a3b8;">Total Focus Time:</span>
-                <!-- Safe rendering fallback here as well -->
                 <strong>{{ (user.total_focus_time or 0) // 60 }}h {{ (user.total_focus_time or 0) % 60 }}m</strong>
             </div>
 
@@ -205,7 +241,18 @@
                 <span style="color: #94a3b8;">Current Streak:</span>
                 <strong>{{ user.current_streak or 0 }} Days 🔥</strong>
             </div>
+
+            <!-- NEW: Spotify Wrapped Insights Chart -->
+            <h3 style="text-align: center; color: #94a3b8; margin-top: 30px; font-size: 16px;">Focus Insights</h3>
+            <div style="width: 200px; height: 200px; margin: 0 auto 20px auto;">
+                <canvas id="insightsChart"></canvas>
+            </div>
             
+            <!-- Secure Data Passthrough for JS -->
+            <script id="insights-data" type="application/json">
+                {{ insights | tojson | safe }}
+            </script>
+
             <a href="{{ url_for('logout') }}"><button class="btn logout-btn">Logout</button></a>
         </div>
     </div>
@@ -220,17 +267,21 @@
             event.target.classList.add('active');
         }
 
+        // NEW: Audio Chime
+        const successDing = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+        successDing.volume = 0.6; // Not too loud!
+
         // Timer Logic
-        let duration = 30 * 60; // Start default at 30 minutes
+        let duration = 30 * 60; 
         let timeLeft = duration;
         let timerId = null;
         let isRunning = false;
-        let endTime = null; // NEW: Tracks exact real-world time to fix tab-switching lag
+        let endTime = null; 
         
         const timeText = document.getElementById('time-left');
         const progressRing = document.getElementById('progress-ring');
         const startBtn = document.getElementById('start-btn');
-        const successMsg = document.getElementById('success-message'); // Grab the message
+        const successMsg = document.getElementById('success-message'); 
         const circumference = 2 * Math.PI * 90;
 
         function updateDisplay() {
@@ -250,20 +301,17 @@
             if (isRunning) return; 
             duration = minutes * 60;
             timeLeft = duration;
-            successMsg.style.display = 'none'; // THE FIX: Hide message if they change time
+            successMsg.style.display = 'none'; 
             updateDisplay();
         }
 
-        // NEW: Function to handle custom time input
         function setCustomTime() {
-            if (isRunning) return; // Prevent changing time while timer is running
+            if (isRunning) return; 
             const input = document.getElementById('custom-minutes');
             const mins = parseInt(input.value);
-            
-            // Only update if they entered a valid number greater than 0
             if (mins && mins > 0) {
                 setTime(mins);
-                input.value = ''; // Clear the input box cleanly
+                input.value = ''; 
             }
         }
 
@@ -273,36 +321,39 @@
                 startBtn.innerText = 'Start Focus';
                 isRunning = false;
             } else {
-                successMsg.style.display = 'none'; // THE FIX: Hide message when starting
-                
-                // NEW: Calculate the exact real-world time the timer should end
+                successMsg.style.display = 'none'; 
                 endTime = Date.now() + (timeLeft * 1000);
                 
                 timerId = setInterval(() => {
-                    // NEW: Calculate remaining time based on real-world clock, not just loop ticks
                     const now = Date.now();
                     timeLeft = Math.round((endTime - now) / 1000);
                     
                     if (timeLeft <= 0) {
-                        timeLeft = 0; // Prevent negative numbers from showing
-                        updateDisplay(); // Final update to show 0:00
-                        
+                        timeLeft = 0; 
+                        updateDisplay(); 
                         clearInterval(timerId);
                         isRunning = false;
                         startBtn.innerText = 'Start Focus';
                         
-                        successMsg.style.display = 'block'; // THE FIX: Show message ONLY when finished!
+                        // NEW: Play the ding sound!
+                        successDing.play().catch(e => console.log("Browser blocked sound"));
                         
-                        // Send completed time to backend
+                        successMsg.style.display = 'block'; 
+                        
+                        // NEW: Get selected category to send to backend
+                        const selectedCategory = document.getElementById('task-category').value;
+                        
                         fetch('/update_time', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ minutes: duration / 60 })
+                            body: JSON.stringify({ 
+                                minutes: duration / 60,
+                                category: selectedCategory 
+                            })
                         }).then(() => {
-                            // Reload after 3 seconds so the user can see their updated rank/streak!
                             setTimeout(() => window.location.reload(), 3000);
                         });
-                        return; // Stop further execution
+                        return; 
                     }
                     updateDisplay();
                 }, 1000);
@@ -312,6 +363,48 @@
         }
 
         updateDisplay(); 
+
+        // --- NEW: Chart.js Rendering Logic ---
+        // Securely grab the insights dictionary safely parsed from HTML
+        let rawInsights = {"Start a timer to see insights": 1}; // Fallback for preview mode
+        try {
+            const dataElement = document.getElementById('insights-data');
+            if (dataElement) {
+                const textData = dataElement.textContent.trim();
+                // Check that it's not the raw Jinja tag (when viewed without Flask backend)
+                if (!textData.includes('{{')) {
+                    rawInsights = JSON.parse(textData);
+                }
+            }
+        } catch (error) {
+            console.error("Error parsing insights data:", error);
+        }
+
+        const chartLabels = Object.keys(rawInsights);
+        const chartData = Object.values(rawInsights);
+
+        const ctx = document.getElementById('insightsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    data: chartData,
+                    backgroundColor: ['#38bdf8', '#10b981', '#fbbf24', '#a855f7', '#ef4444'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#94a3b8', font: { size: 12 } }
+                    }
+                },
+                cutout: '75%' // Makes the doughnut ring thinner/sleeker
+            }
+        });
     </script>
 </body>
 </html>

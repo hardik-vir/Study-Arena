@@ -4,26 +4,23 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import func # NEW: Required for calculating pie chart data
 
 app = Flask(__name__)
 
 # --- SECURE CONFIGURATION ---
-# 1. The Secret Key: Grabs from Render Environment, or uses a fallback locally
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'super_secret_arena_key_123')
 
-# 2. Database Routing: Grabs Render Postgres URL, or defaults to local absolute path SQLite
 basedir = os.path.abspath(os.path.dirname(__file__))
 default_sqlite_url = 'sqlite:///' + os.path.join(basedir, 'arena.db')
 database_url = os.environ.get('DATABASE_URL', default_sqlite_url)
 
-# Fix for older Postgres URL formatting
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Initialize tools
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -31,18 +28,15 @@ login_manager.login_view = 'login'
 
 # --- DATABASE MODELS ---
 class User(UserMixin, db.Model):
-    __tablename__ = 'arena_users' # NEW: Forces Postgres to create a brand new, updated table!
+    __tablename__ = 'arena_users' 
     
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
     total_focus_time = db.Column(db.Integer, default=0)
-    
-    # NEW (Step 3): Columns to track daily streaks!
     current_streak = db.Column(db.Integer, default=0)
     last_focus_date = db.Column(db.Date, nullable=True)
 
-    # Automatically calculates rank based on time
     @property
     def rank(self):
         if self.total_focus_time < 60:
@@ -54,6 +48,16 @@ class User(UserMixin, db.Model):
         else:
             return "Grandmaster 👑"
 
+# NEW: Table to track individual sessions for the Spotify Wrapped Insights
+class FocusSession(db.Model):
+    __tablename__ = 'focus_sessions'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('arena_users.id'), nullable=False)
+    duration_minutes = db.Column(db.Integer, nullable=False)
+    category = db.Column(db.String(50), nullable=False, default="General")
+    date = db.Column(db.DateTime, default=db.func.current_timestamp())
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -62,9 +66,22 @@ def load_user(user_id):
 @app.route('/')
 @login_required
 def home():
-    # Fetch top 10 users for the leaderboard
     top_users = User.query.order_by(User.total_focus_time.desc()).limit(10).all()
-    return render_template('index.html', user=current_user, top_users=top_users)
+    
+    # NEW: Calculate pie chart data for the current user
+    category_data = db.session.query(
+        FocusSession.category, 
+        func.sum(FocusSession.duration_minutes)
+    ).filter(FocusSession.user_id == current_user.id).group_by(FocusSession.category).all()
+    
+    # Format data for Chart.js (e.g., {'Coding': 120, 'Reading': 60})
+    insights = {cat: int(mins) for cat, mins in category_data}
+    
+    # If they haven't studied yet, give the chart empty placeholder data
+    if not insights:
+        insights = {"Start a timer to see insights": 1}
+
+    return render_template('index.html', user=current_user, top_users=top_users, insights=insights)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -103,30 +120,27 @@ def logout():
 @app.route('/update_time', methods=['POST'])
 @login_required
 def update_time():
-    """ This gets called silently by JavaScript when a timer finishes """
     data = request.get_json()
     minutes = data.get('minutes', 0)
+    category = data.get('category', 'General') # NEW: Grab the category
     
-    # 1. Update their total time
+    # 1. Update total time & Streak
     current_user.total_focus_time += minutes
-    
-    # 2. NEW (Step 3): Calculate their Daily Streak
     today = date.today()
     if current_user.last_focus_date == today - timedelta(days=1):
-        # They studied yesterday! Increase streak.
         current_user.current_streak += 1
     elif current_user.last_focus_date != today:
-        # They missed a day (or it's their first time). Reset streak to 1.
         current_user.current_streak = 1
-        
-    # Mark that they studied today
     current_user.last_focus_date = today
     
-    db.session.commit()
+    # 2. NEW: Save the specific session for the Pie Chart
+    new_session = FocusSession(user_id=current_user.id, duration_minutes=minutes, category=category)
+    db.session.add(new_session)
     
+    db.session.commit()
     return jsonify({'status': 'success'})
 
-# --- DATABASE CREATION (Safe for Gunicorn/Render) ---
+# --- DATABASE CREATION ---
 with app.app_context():
     db.create_all()
 
