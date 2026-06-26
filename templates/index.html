@@ -117,6 +117,7 @@
         @media (max-width: 1024px) { 
             .bento-grid { grid-template-columns: 1fr; } 
             .timer-display svg { max-width: 250px; height: auto; }
+            .dashboard-wrapper { padding: 15px 10px; } /* Improved mobile screen usage */
         }
     </style>
 </head>
@@ -181,13 +182,16 @@
                     <audio id="ambient-player" loop></audio>
                 </div>
                 
-                <div class="time-buttons">
-                    <button class="time-btn" onclick="setTime(10)">10m</button>
-                    <button class="time-btn" onclick="setTime(25)">25m</button>
-                    <button class="time-btn" onclick="setTime(60)">1h</button>
-                    <div style="display: flex; gap: 5px; flex: 1.5;">
-                        <input type="number" id="custom-minutes" placeholder="Mins" min="1" style="background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; width: 100%; outline: none; font-size: 14px;">
-                        <button class="time-btn" onclick="setCustomTime()" style="background: #38bdf8; color: #0f172a; font-weight: bold; flex: 0.5;">Set</button>
+                <!-- NEW: Split timer buttons into two spacious rows -->
+                <div class="time-buttons" style="flex-direction: column; gap: 15px;">
+                    <div style="display: flex; gap: 10px; width: 100%;">
+                        <button class="time-btn" onclick="setTime(10)">10m</button>
+                        <button class="time-btn" onclick="setTime(30)">30m</button>
+                        <button class="time-btn" onclick="setTime(60)">1h</button>
+                    </div>
+                    <div style="display: flex; gap: 10px; width: 100%;">
+                        <input type="number" id="custom-minutes" placeholder="Custom Mins" min="1" style="background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 8px; width: 100%; outline: none; font-size: 15px;">
+                        <button class="time-btn" onclick="setCustomTime()" style="background: #38bdf8; color: #0f172a; font-weight: bold; min-width: 80px;">Set</button>
                     </div>
                 </div>
                 
