@@ -4,171 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deep Work Arena</title>
-    <!-- NEW: Import Chart.js for Insights -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { 
-            background-color: #0f172a; 
-            color: #f8fafc; 
-            font-family: sans-serif; 
-            display: flex; 
-            justify-content: center; 
-            padding-top: 100px; /* Pushed down to make room for navbar */
-            margin: 0; 
-        }
-        
-        /* NEW: Top Navigation Bar */
-        .navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background: #1e293b;
-            padding: 15px 0;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            text-align: center;
-            z-index: 1000;
-        }
-        
-        .navbar-brand {
-            color: #f8fafc;
-            font-size: 24px;
-            font-weight: 900;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            margin: 0;
-            text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
-        }
-
-        .arena-card { 
-            background: #1e293b; 
-            padding: 40px; 
-            border-radius: 16px; 
-            width: 400px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3); 
-        }
-        
-        /* FIX: Align tabs properly */
-        .tabs { 
-            display: flex; 
-            justify-content: space-around; /* Spaced out evenly */
-            margin-bottom: 25px; 
-            border-bottom: 1px solid #334155; 
-        }
-        .tab-btn { 
-            background: none; 
-            border: none; 
-            color: #94a3b8; 
-            padding: 10px 15px; 
-            cursor: pointer; 
-            font-size: 16px; 
-            font-weight: bold;
-        }
-        .tab-btn.active { 
-            color: #38bdf8; 
-            border-bottom: 2px solid #38bdf8; 
-        }
+        body { background-color: #0f172a; color: #f8fafc; font-family: sans-serif; display: flex; justify-content: center; padding-top: 100px; margin: 0; }
+        .navbar { position: fixed; top: 0; left: 0; width: 100%; background: #1e293b; padding: 15px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.3); text-align: center; z-index: 1000; }
+        .navbar-brand { color: #f8fafc; font-size: 24px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; margin: 0; text-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
+        .arena-card { background: #1e293b; padding: 40px; border-radius: 16px; width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .tabs { display: flex; justify-content: space-around; margin-bottom: 25px; border-bottom: 1px solid #334155; }
+        .tab-btn { background: none; border: none; color: #94a3b8; padding: 10px 15px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        .tab-btn.active { color: #38bdf8; border-bottom: 2px solid #38bdf8; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        
         .timer-display { text-align: center; margin: 20px 0; position: relative; }
-        .time-text { 
-            position: absolute; 
-            top: 50%; left: 50%; 
-            transform: translate(-50%, -50%); 
-            font-size: 48px; 
-            font-weight: bold; 
-        }
-        
-        .btn { 
-            background: #38bdf8; 
-            color: #0f172a; 
-            border: none; 
-            padding: 12px 24px; 
-            border-radius: 8px; 
-            font-size: 16px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            width: 100%; 
-            margin-top: 10px;
-        }
+        .time-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; font-weight: bold; }
+        .btn { background: #38bdf8; color: #0f172a; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
         .btn:hover { background: #0ea5e9; }
-        
         .time-buttons { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
-        .time-btn { 
-            background: #334155; 
-            color: white; 
-            border: none; 
-            padding: 8px 16px; 
-            border-radius: 6px; 
-            cursor: pointer; 
-        }
+        .time-btn { background: #334155; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
         .time-btn:hover { background: #475569; }
-        
-        /* NEW: Dropdown Styling */
-        .category-select {
-            width: 100%;
-            background: #0f172a;
-            color: #f8fafc;
-            border: 1px solid #334155;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 15px;
-            margin-bottom: 20px;
-            outline: none;
-            cursor: pointer;
-        }
-        
-        .stat-block { 
-            display: flex; 
-            justify-content: space-between; 
-            padding: 15px; 
-            background: rgba(0,0,0,0.2); 
-            border-radius: 12px; 
-            margin-bottom: 10px; 
-        }
+        .category-select { width: 100%; background: #0f172a; color: #f8fafc; border: 1px solid #334155; padding: 10px; border-radius: 8px; font-size: 15px; margin-bottom: 20px; outline: none; cursor: pointer; }
+        .stat-block { display: flex; justify-content: space-between; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 12px; margin-bottom: 10px; }
         .logout-btn { background: #ef4444; margin-top: 20px; }
         .logout-btn:hover { background: #dc2626; }
-
-        #success-message { 
-            display: none; 
-            color: #10b981; 
-            text-align: center; 
-            font-weight: bold; 
-            margin-top: 15px; 
-            margin-bottom: 15px;
-        }
-
+        #success-message { display: none; color: #10b981; text-align: center; font-weight: bold; margin-top: 15px; margin-bottom: 15px; }
         svg { transform: rotate(-90deg); }
         circle { transition: stroke-dashoffset 1s linear; }
-
-        /* --- MOBILE RESPONSIVENESS --- */
-        @media (max-width: 600px) {
-            .arena-card { width: 95%; padding: 20px; margin-top: -10px; }
-            svg { max-width: 100%; height: auto; }
-            .time-buttons { flex-wrap: wrap; }
-        }
+        @media (max-width: 600px) { .arena-card { width: 95%; padding: 20px; margin-top: -10px; } svg { max-width: 100%; height: auto; } .time-buttons { flex-wrap: wrap; } }
     </style>
 </head>
 <body>
-    
-    <!-- NEW: Professional Top Navbar -->
-    <nav class="navbar">
-        <h1 class="navbar-brand">Deep Work Arena</h1>
-    </nav>
-
+    <nav class="navbar"><h1 class="navbar-brand">Deep Work Arena</h1></nav>
     <div class="arena-card">
-        <!-- NAVIGATION TABS -->
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('timer')">Timer</button>
             <button class="tab-btn" onclick="switchTab('leaderboard')">Leaderboard</button>
             <button class="tab-btn" onclick="switchTab('profile')">Profile</button>
         </div>
 
-        <!-- PAGE 1: TIMER -->
         <div id="timer-view" class="tab-content active">
-            
-            <!-- NEW: Spotify Wrapped Insights Category Picker -->
             <select id="task-category" class="category-select">
                 <option value="Coding">💻 Coding</option>
                 <option value="Studying">📚 Studying</option>
@@ -176,18 +49,15 @@
                 <option value="Work">💼 Work</option>
                 <option value="General">⚡ General Focus</option>
             </select>
-
             <div class="time-buttons">
                 <button class="time-btn" onclick="setTime(10)">10 Min</button>
                 <button class="time-btn" onclick="setTime(30)">30 Min</button>
                 <button class="time-btn" onclick="setTime(60)">1 Hour</button>
             </div>
-
             <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 25px;">
                 <input type="number" id="custom-minutes" placeholder="Custom (mins)" min="1" style="background: #0f172a; color: white; border: 1px solid #334155; padding: 8px 12px; border-radius: 6px; width: 120px; outline: none; font-size: 14px;">
                 <button class="time-btn" onclick="setCustomTime()" style="background: #38bdf8; color: #0f172a; font-weight: bold;">Set</button>
             </div>
-            
             <div class="timer-display">
                 <svg width="200" height="200">
                     <circle cx="100" cy="100" r="90" fill="none" stroke="#334155" stroke-width="10"></circle>
@@ -195,17 +65,12 @@
                 </svg>
                 <div class="time-text" id="time-left">30:00</div>
             </div>
-            
             <p id="success-message">🎉 Focus session complete! Time to level up.</p>
-
             <button class="btn" id="start-btn" onclick="toggleTimer()">Start Focus</button>
         </div>
 
-        <!-- PAGE 2: LEADERBOARD -->
         <div id="leaderboard-view" class="tab-content">
             <h2 style="color: #38bdf8; margin-top: 0; font-weight: 800; text-align: center;">Global Rankings</h2>
-            <p style="color: #94a3b8; margin-bottom: 25px; text-align: center;">The most focused players in the Arena.</p>
-            
             {% for player in top_users %}
             <div class="stat-block">
                 <span style="font-size: 18px;">
@@ -223,75 +88,54 @@
             {% endfor %}
         </div>
 
-        <!-- PAGE 3: PROFILE -->
         <div id="profile-view" class="tab-content">
             <h2 style="color: #10b981; margin-top: 0; font-weight: 800; text-align: center;">{{ user.username }}</h2>
-            
             <div class="stat-block" style="text-align: center; margin-bottom: 20px; display: block;">
                 <span style="color: #94a3b8; font-size: 14px; display: block; margin-bottom: 5px;">Current Rank</span>
                 <strong style="color: #10b981; font-size: 24px;">{{ user.rank }}</strong>
             </div>
-            
             <div class="stat-block">
                 <span style="color: #94a3b8;">Total Focus Time:</span>
                 <strong>{{ (user.total_focus_time or 0) // 60 }}h {{ (user.total_focus_time or 0) % 60 }}m</strong>
             </div>
-
             <div class="stat-block">
                 <span style="color: #94a3b8;">Current Streak:</span>
                 <strong>{{ user.current_streak or 0 }} Days 🔥</strong>
             </div>
-
-            <!-- NEW: Spotify Wrapped Insights Chart -->
+            
             <h3 style="text-align: center; color: #94a3b8; margin-top: 30px; font-size: 16px;">Focus Insights</h3>
             <div style="width: 200px; height: 200px; margin: 0 auto 20px auto;">
                 <canvas id="insightsChart"></canvas>
             </div>
             
-            <!-- Secure Data Passthrough for JS -->
             <script id="insights-data" type="application/json">
                 {{ insights | tojson | safe }}
             </script>
-
             <a href="{{ url_for('logout') }}"><button class="btn logout-btn">Logout</button></a>
         </div>
     </div>
 
     <script>
-        // Tab Switching Logic
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
             document.getElementById(tabId + '-view').classList.add('active');
             event.target.classList.add('active');
         }
 
-        // NEW: Audio Chime
         const successDing = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-        successDing.volume = 0.6; // Not too loud!
+        successDing.volume = 0.6; 
 
-        // Timer Logic
-        let duration = 30 * 60; 
-        let timeLeft = duration;
-        let timerId = null;
-        let isRunning = false;
-        let endTime = null; 
-        
-        const timeText = document.getElementById('time-left');
-        const progressRing = document.getElementById('progress-ring');
-        const startBtn = document.getElementById('start-btn');
-        const successMsg = document.getElementById('success-message'); 
+        let duration = 30 * 60, timeLeft = duration, timerId = null, isRunning = false, endTime = null; 
+        const timeText = document.getElementById('time-left'), progressRing = document.getElementById('progress-ring');
+        const startBtn = document.getElementById('start-btn'), successMsg = document.getElementById('success-message'); 
         const circumference = 2 * Math.PI * 90;
 
         function updateDisplay() {
-            let minutes = Math.floor(timeLeft / 60);
-            let seconds = timeLeft % 60;
+            let minutes = Math.floor(timeLeft / 60), seconds = timeLeft % 60;
             timeText.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-            
             let progress = timeLeft / duration;
             progressRing.style.strokeDashoffset = circumference - (progress * circumference);
-
             if (progress > 0.5) progressRing.style.stroke = '#38bdf8'; 
             else if (progress > 0.2) progressRing.style.stroke = '#fbbf24'; 
             else progressRing.style.stroke = '#ef4444'; 
@@ -299,111 +143,53 @@
 
         function setTime(minutes) {
             if (isRunning) return; 
-            duration = minutes * 60;
-            timeLeft = duration;
-            successMsg.style.display = 'none'; 
-            updateDisplay();
+            duration = minutes * 60; timeLeft = duration; successMsg.style.display = 'none'; updateDisplay();
         }
 
         function setCustomTime() {
             if (isRunning) return; 
-            const input = document.getElementById('custom-minutes');
-            const mins = parseInt(input.value);
-            if (mins && mins > 0) {
-                setTime(mins);
-                input.value = ''; 
-            }
+            const input = document.getElementById('custom-minutes'), mins = parseInt(input.value);
+            if (mins && mins > 0) { setTime(mins); input.value = ''; }
         }
 
         function toggleTimer() {
             if (isRunning) {
-                clearInterval(timerId);
-                startBtn.innerText = 'Start Focus';
-                isRunning = false;
+                clearInterval(timerId); startBtn.innerText = 'Start Focus'; isRunning = false;
             } else {
-                successMsg.style.display = 'none'; 
-                endTime = Date.now() + (timeLeft * 1000);
-                
+                successMsg.style.display = 'none'; endTime = Date.now() + (timeLeft * 1000);
                 timerId = setInterval(() => {
-                    const now = Date.now();
-                    timeLeft = Math.round((endTime - now) / 1000);
-                    
+                    timeLeft = Math.round((endTime - Date.now()) / 1000);
                     if (timeLeft <= 0) {
-                        timeLeft = 0; 
-                        updateDisplay(); 
-                        clearInterval(timerId);
-                        isRunning = false;
-                        startBtn.innerText = 'Start Focus';
-                        
-                        // NEW: Play the ding sound!
-                        successDing.play().catch(e => console.log("Browser blocked sound"));
-                        
+                        timeLeft = 0; updateDisplay(); clearInterval(timerId); isRunning = false; startBtn.innerText = 'Start Focus';
+                        successDing.play().catch(e => console.log("Sound blocked"));
                         successMsg.style.display = 'block'; 
-                        
-                        // NEW: Get selected category to send to backend
                         const selectedCategory = document.getElementById('task-category').value;
-                        
                         fetch('/update_time', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ 
-                                minutes: duration / 60,
-                                category: selectedCategory 
-                            })
-                        }).then(() => {
-                            setTimeout(() => window.location.reload(), 3000);
-                        });
+                            method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ minutes: duration / 60, category: selectedCategory })
+                        }).then(() => { setTimeout(() => window.location.reload(), 3000); });
                         return; 
                     }
                     updateDisplay();
                 }, 1000);
-                startBtn.innerText = 'Pause';
-                isRunning = true;
+                startBtn.innerText = 'Pause'; isRunning = true;
             }
         }
-
         updateDisplay(); 
 
-        // --- NEW: Chart.js Rendering Logic ---
-        // Securely grab the insights dictionary safely parsed from HTML
-        let rawInsights = {"Start a timer to see insights": 1}; // Fallback for preview mode
+        let rawInsights = {"Start a timer to see insights": 1};
         try {
             const dataElement = document.getElementById('insights-data');
-            if (dataElement) {
-                const textData = dataElement.textContent.trim();
-                // Check that it's not the raw Jinja tag (when viewed without Flask backend)
-                if (!textData.includes('{{')) {
-                    rawInsights = JSON.parse(textData);
-                }
-            }
-        } catch (error) {
-            console.error("Error parsing insights data:", error);
-        }
+            if (dataElement && !dataElement.textContent.includes('{{')) rawInsights = JSON.parse(dataElement.textContent.trim());
+        } catch (error) { console.error(error); }
 
-        const chartLabels = Object.keys(rawInsights);
-        const chartData = Object.values(rawInsights);
-
-        const ctx = document.getElementById('insightsChart').getContext('2d');
-        new Chart(ctx, {
+        new Chart(document.getElementById('insightsChart').getContext('2d'), {
             type: 'doughnut',
             data: {
-                labels: chartLabels,
-                datasets: [{
-                    data: chartData,
-                    backgroundColor: ['#38bdf8', '#10b981', '#fbbf24', '#a855f7', '#ef4444'],
-                    borderWidth: 0,
-                    hoverOffset: 4
-                }]
+                labels: Object.keys(rawInsights),
+                datasets: [{ data: Object.values(rawInsights), backgroundColor: ['#38bdf8', '#10b981', '#fbbf24', '#a855f7', '#ef4444'], borderWidth: 0 }]
             },
-            options: {
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: { color: '#94a3b8', font: { size: 12 } }
-                    }
-                },
-                cutout: '75%' // Makes the doughnut ring thinner/sleeker
-            }
+            options: { plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }, cutout: '75%' }
         });
     </script>
 </body>
