@@ -15,7 +15,7 @@
     <title>Deep Work Arena</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* NEW: Dynamic Background & Glassmorphism styling */
+        /* Dynamic Background & Glassmorphism styling */
         body { 
             background-color: #0f172a; 
             background: linear-gradient(135deg, #0f172a, #1e293b); 
@@ -37,7 +37,7 @@
         }
         .navbar-brand { color: #f8fafc; font-size: 24px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; margin: 0; text-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
         
-        /* NEW: Frosted Glass Card */
+        /* Frosted Glass Card */
         .arena-card { 
             background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(15px); 
             border: 1px solid rgba(255,255,255,0.1); padding: 40px; 
@@ -60,7 +60,7 @@
         .time-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
         .time-btn:hover { background: rgba(255,255,255,0.2); }
         
-        /* THE FIX: Replaced default arrows with a custom SVG to perfectly align them */
+        /* Custom Dropdown SVG Arrow */
         .category-select { 
             width: 100%; background: rgba(0,0,0,0.3); color: #f8fafc; border: 1px solid rgba(255,255,255,0.1); 
             padding: 12px 35px 12px 15px; border-radius: 12px; font-size: 15px; margin-bottom: 20px; outline: none; cursor: pointer;
@@ -70,10 +70,9 @@
         }
         .stat-block { display: flex; justify-content: space-between; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 12px; margin-bottom: 10px; }
         
-        /* THE FIX: Move the leaderboard highlight into its own CSS class */
         .current-user-rank { background: rgba(56, 189, 248, 0.1) !important; border: 1px solid rgba(56, 189, 248, 0.3); }
-        
-        /* NEW: Beautiful Heatmap CSS */
+
+        /* Beautiful Heatmap CSS */
         .heatmap { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; margin-top: 15px; margin-bottom: 25px; }
         .day-cell { width: 100%; aspect-ratio: 1; border-radius: 4px; background: rgba(255,255,255,0.05); transition: 0.3s; }
         .day-active { background: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.6); }
@@ -88,6 +87,16 @@
         svg { transform: rotate(-90deg); filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.3)); }
         circle { transition: stroke-dashoffset 1s linear; }
         
+        /* Footer & Social Links Styling */
+        .app-footer {
+            margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05);
+            text-align: center; font-size: 14px; color: #94a3b8; display: flex; flex-direction: column; align-items: center; gap: 12px;
+        }
+        .social-links { display: flex; gap: 20px; }
+        .social-links a { color: #94a3b8; text-decoration: none; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+        .social-links a:hover { color: #38bdf8; }
+        .social-links svg { transform: none; filter: none; width: 18px; height: 18px; fill: currentColor; } /* Overrides global SVG rules */
+
         #toast-container {
             visibility: hidden; min-width: 250px; background-color: #10b981; color: #fff; text-align: center; border-radius: 12px;
             padding: 16px; position: fixed; z-index: 1001; right: 30px; bottom: 30px; font-size: 16px; font-weight: bold;
@@ -141,7 +150,6 @@
 
             <div style="text-align: center; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
                 <span style="color: #94a3b8; font-size: 14px; margin-right: 10px; font-weight: bold;">Ambient Noise:</span>
-                <!-- THE FIX: Adjusted padding to properly fit the new aligned arrow -->
                 <select id="ambient-sound" class="category-select" style="width: auto; margin-bottom: 0; padding: 8px 35px 8px 15px; display: inline-block;" onchange="changeAmbient()">
                     <option value="none">🔇 None</option>
                     <option value="rain">🌧️ Rain</option>
@@ -151,7 +159,6 @@
                 <audio id="ambient-player" loop></audio>
             </div>
 
-            <!-- THE FIX: Added the Reset Timer button side-by-side -->
             <div style="display: flex; gap: 10px;">
                 <button class="btn" id="start-btn" onclick="toggleTimer()">Start Focus</button>
                 <button class="btn" onclick="resetTimer()" style="background: rgba(255,255,255,0.1); color: #f8fafc; border: 1px solid rgba(255,255,255,0.05);">Reset Timer</button>
@@ -162,7 +169,6 @@
         <div id="leaderboard-view" class="tab-content">
             <h2 style="color: #38bdf8; margin-top: 0; font-weight: 800; text-align: center;">Global Rankings</h2>
             {% for player in top_users %}
-            <!-- THE FIX: Conditionally add the class instead of an inline style -->
             <div class="stat-block {% if player.id == user.id %}current-user-rank{% endif %}">
                 <span style="font-size: 18px;">
                     {% if loop.index == 1 %}👑
@@ -197,7 +203,7 @@
                 <strong>{{ user.current_streak or 0 }} Days 🔥</strong>
             </div>
             
-            <!-- NEW: GitHub Heatmap Grid -->
+            <!-- GitHub Heatmap Grid -->
             <h3 style="text-align: left; color: #94a3b8; margin-top: 30px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">30-Day Activity</h3>
             <div class="heatmap">
                 {% for is_active in heatmap_data %}
@@ -221,6 +227,21 @@
                 <button class="btn delete-btn" onclick="deleteAccount()">Delete Account</button>
             </div>
         </div>
+
+        <!-- Global Footer -->
+        <div class="app-footer">
+            <div>Built by <strong>Hardik Virani</strong> 🚀</div>
+            <div class="social-links">
+                <a href="https://www.linkedin.com/in/hardik-virani-807020370/" target="_blank">
+                    <svg viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                    LinkedIn
+                </a>
+                <a href="mailto:hardikvirani.work@zohomail.in">
+                    <svg viewBox="0 0 24 24"><path d="M0 3v18h24v-18h-24zm6.623 7.929l-4.623 5.712v-9.458l4.623 3.746zm-4.141-5.929h19.035l-9.517 7.713-9.518-7.713zm5.694 7.188l3.824 3.099 3.83-3.104 5.612 6.817h-18.779l5.513-6.812zm9.208-1.264l4.616-3.741v9.348l-4.616-5.607z"/></svg>
+                    Contact
+                </a>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -242,10 +263,8 @@
 
         function changeAmbient() {
             const choice = document.getElementById('ambient-sound').value;
-            // 1. Change Background Color smoothly!
             document.body.className = choice; 
             
-            // 2. Play Audio
             if (choice === 'none' || choice === '') {
                 ambientPlayer.pause();
             } else {
@@ -290,7 +309,6 @@
             if (mins && mins > 0) { setTime(mins); input.value = ''; }
         }
 
-        // THE FIX: Logic for the new reset button
         function resetTimer() {
             if (timerId) clearInterval(timerId);
             isRunning = false;
@@ -356,7 +374,6 @@
         let rawInsights = {"Start a timer to see insights": 1};
         try {
             const dataElement = document.getElementById('insights-data');
-            // THE FIX: Break up the brackets so Jinja doesn't try to parse this line
             if (dataElement && !dataElement.textContent.includes('{' + '{')) {
                 rawInsights = JSON.parse(dataElement.textContent.trim());
             }
