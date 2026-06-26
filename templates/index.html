@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- NEW: Professional Favicon (Glowing Hourglass) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏳</text></svg>">
     <title>Deep Work Arena</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -26,14 +28,45 @@
         .stat-block { display: flex; justify-content: space-between; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 12px; margin-bottom: 10px; }
         .logout-btn { background: #ef4444; margin-top: 20px; }
         .logout-btn:hover { background: #dc2626; }
-        #success-message { display: none; color: #10b981; text-align: center; font-weight: bold; margin-top: 15px; margin-bottom: 15px; }
+        .delete-btn { background: #7f1d1d; margin-top: 10px; color: #f8fafc; }
+        .delete-btn:hover { background: #991b1b; }
         svg { transform: rotate(-90deg); }
         circle { transition: stroke-dashoffset 1s linear; }
+        
+        /* NEW: Toast Notification CSS Animation */
+        #toast-container {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #10b981;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1001;
+            right: 30px;
+            bottom: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            opacity: 0;
+            transition: opacity 0.5s, bottom 0.5s;
+        }
+        #toast-container.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px; /* Slides up smoothly */
+        }
+        
         @media (max-width: 600px) { .arena-card { width: 95%; padding: 20px; margin-top: -10px; } svg { max-width: 100%; height: auto; } .time-buttons { flex-wrap: wrap; } }
     </style>
 </head>
 <body>
     <nav class="navbar"><h1 class="navbar-brand">Deep Work Arena</h1></nav>
+    
+    <!-- NEW: The Toast Pop-Up Element -->
+    <div id="toast-container">🎉 Session Logged! Leveling up...</div>
+
     <div class="arena-card">
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('timer')">Timer</button>
@@ -49,15 +82,18 @@
                 <option value="Work">💼 Work</option>
                 <option value="General">⚡ General Focus</option>
             </select>
+            
             <div class="time-buttons">
                 <button class="time-btn" onclick="setTime(10)">10 Min</button>
                 <button class="time-btn" onclick="setTime(30)">30 Min</button>
                 <button class="time-btn" onclick="setTime(60)">1 Hour</button>
             </div>
+            
             <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 25px;">
                 <input type="number" id="custom-minutes" placeholder="Custom (mins)" min="1" style="background: #0f172a; color: white; border: 1px solid #334155; padding: 8px 12px; border-radius: 6px; width: 120px; outline: none; font-size: 14px;">
                 <button class="time-btn" onclick="setCustomTime()" style="background: #38bdf8; color: #0f172a; font-weight: bold;">Set</button>
             </div>
+            
             <div class="timer-display">
                 <svg width="200" height="200">
                     <circle cx="100" cy="100" r="90" fill="none" stroke="#334155" stroke-width="10"></circle>
@@ -65,7 +101,19 @@
                 </svg>
                 <div class="time-text" id="time-left">30:00</div>
             </div>
-            <p id="success-message">🎉 Focus session complete! Time to level up.</p>
+
+            <!-- NEW: Ambient Background Noise Panel -->
+            <div style="text-align: center; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;">
+                <span style="color: #94a3b8; font-size: 14px; margin-right: 10px;">Ambient Noise:</span>
+                <select id="ambient-sound" class="category-select" style="width: 120px; margin-bottom: 0; padding: 6px;" onchange="changeAmbient()">
+                    <option value="none">🔇 None</option>
+                    <option value="rain">🌧️ Rain</option>
+                    <option value="cafe">☕ Cafe</option>
+                    <option value="waves">🌊 Waves</option>
+                </select>
+                <audio id="ambient-player" loop></audio>
+            </div>
+
             <button class="btn" id="start-btn" onclick="toggleTimer()">Start Focus</button>
         </div>
 
@@ -111,7 +159,10 @@
             <script id="insights-data" type="application/json">
                 {{ insights | tojson | safe }}
             </script>
+            
             <a href="{{ url_for('logout') }}"><button class="btn logout-btn">Logout</button></a>
+            <!-- NEW: Delete Account Button -->
+            <button class="btn delete-btn" onclick="deleteAccount()">Delete Account</button>
         </div>
     </div>
 
@@ -123,12 +174,38 @@
             event.target.classList.add('active');
         }
 
+        // --- NEW: Ambient Sound Engine ---
+        const ambientPlayer = document.getElementById('ambient-player');
+        const ambientTracks = {
+            'rain': 'https://assets.mixkit.co/active_storage/sfx/2515/2515-preview.mp3',
+            'cafe': 'https://assets.mixkit.co/active_storage/sfx/2658/2658-preview.mp3',
+            'waves': 'https://assets.mixkit.co/active_storage/sfx/2504/2504-preview.mp3'
+        };
+
+        function changeAmbient() {
+            const choice = document.getElementById('ambient-sound').value;
+            if (choice === 'none') {
+                ambientPlayer.pause();
+            } else {
+                ambientPlayer.src = ambientTracks[choice];
+                ambientPlayer.volume = 0.4; // Soft background volume
+                ambientPlayer.play().catch(e => console.log("Sound autoplay blocked"));
+            }
+        }
+
+        // --- NEW: Toast Notification Trigger ---
+        function showToast() {
+            const toast = document.getElementById("toast-container");
+            toast.className = "show";
+            // The reload handles hiding it after 3 seconds anyway
+        }
+
         const successDing = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
         successDing.volume = 0.6; 
 
         let duration = 30 * 60, timeLeft = duration, timerId = null, isRunning = false, endTime = null; 
         const timeText = document.getElementById('time-left'), progressRing = document.getElementById('progress-ring');
-        const startBtn = document.getElementById('start-btn'), successMsg = document.getElementById('success-message'); 
+        const startBtn = document.getElementById('start-btn'); 
         const circumference = 2 * Math.PI * 90;
 
         function updateDisplay() {
@@ -143,7 +220,7 @@
 
         function setTime(minutes) {
             if (isRunning) return; 
-            duration = minutes * 60; timeLeft = duration; successMsg.style.display = 'none'; updateDisplay();
+            duration = minutes * 60; timeLeft = duration; updateDisplay();
         }
 
         function setCustomTime() {
@@ -156,13 +233,15 @@
             if (isRunning) {
                 clearInterval(timerId); startBtn.innerText = 'Start Focus'; isRunning = false;
             } else {
-                successMsg.style.display = 'none'; endTime = Date.now() + (timeLeft * 1000);
+                endTime = Date.now() + (timeLeft * 1000);
                 timerId = setInterval(() => {
                     timeLeft = Math.round((endTime - Date.now()) / 1000);
                     if (timeLeft <= 0) {
                         timeLeft = 0; updateDisplay(); clearInterval(timerId); isRunning = false; startBtn.innerText = 'Start Focus';
+                        
                         successDing.play().catch(e => console.log("Sound blocked"));
-                        successMsg.style.display = 'block'; 
+                        showToast(); // Triggers the elegant slide-in notification
+                        
                         const selectedCategory = document.getElementById('task-category').value;
                         fetch('/update_time', {
                             method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -177,7 +256,23 @@
         }
         updateDisplay(); 
 
-        // THE FIX: Safely parse the Python JSON without using literal template brackets in JS
+        // --- NEW: Safe Account Deletion ---
+        function deleteAccount() {
+            const confirmed = confirm("⚠️ Are you SURE you want to delete your account? This will erase all your focus hours and streaks permanently. This cannot be undone.");
+            if (confirmed) {
+                fetch('/delete_account', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.status === 'success') {
+                        window.location.href = '/login';
+                    } else {
+                        alert("Error deleting account: " + data.message);
+                    }
+                });
+            }
+        }
+
+        // Chart Data Parsing
         let rawInsights = {"Start a timer to see insights": 1};
         try {
             const dataElement = document.getElementById('insights-data');

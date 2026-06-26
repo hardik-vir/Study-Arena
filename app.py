@@ -20,40 +20,31 @@ if database_url.startswith("postgres://"):
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Keeps the Render database connection alive
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    "pool_pre_ping": True,
-    "pool_recycle": 300,
-}
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"pool_pre_ping": True, "pool_recycle": 300}
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# --- THE ULTIMATE ERROR CATCHER (X-RAY MODE) ---
 @app.errorhandler(Exception)
 def handle_exception(e):
     db.session.rollback()
     trace = traceback.format_exc()
     print("CRITICAL CRASH:", trace)
-    # If it crashes, it will print the exact bug to your browser!
     return f"""
     <div style="background:#0f172a; color:#ef4444; padding:30px; font-family:monospace; height:100vh;">
         <h2>⚠️ CRITICAL SYSTEM CRASH DETECTED</h2>
-        <p>An internal error bypassed the safety nets. Please send this exact text to your developer:</p>
-        <textarea style="width:100%; height:400px; background:#1e293b; color:#38bdf8; border:2px solid #ef4444; padding:15px; font-size:14px;">{trace}</textarea>
+        <textarea style="width:100%; height:400px; background:#1e293b; color:#38bdf8; border:2px solid #ef4444; padding:15px;">{trace}</textarea>
     </div>
     """, 500
 
-# --- DATABASE MODELS ---
+# --- DATABASE MODELS (STRICTLY V6 TO PREVENT CRASHES) ---
 class User(UserMixin, db.Model):
-    __tablename__ = 'users_v6' # Final Clean Slate
-    
+    __tablename__ = 'users_v6' 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(255), nullable=False) # Expanded to prevent hash truncation crashes
+    password = db.Column(db.String(255), nullable=False) 
     total_focus_time = db.Column(db.Integer, default=0)
     current_streak = db.Column(db.Integer, default=0)
     last_focus_date = db.Column(db.Date, nullable=True)
@@ -67,8 +58,7 @@ class User(UserMixin, db.Model):
         else: return "Grandmaster 👑"
 
 class FocusSession(db.Model):
-    __tablename__ = 'sessions_v6' # Final Clean Slate
-    
+    __tablename__ = 'sessions_v6' 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users_v6.id'), nullable=False)
     duration_minutes = db.Column(db.Integer, default=0)
@@ -85,7 +75,6 @@ def load_user(user_id):
 @login_required
 def home():
     top_users = User.query.order_by(User.total_focus_time.desc()).limit(10).all()
-    
     insights = {}
     user_sessions = FocusSession.query.filter_by(user_id=current_user.id).all()
     for s in user_sessions:
@@ -103,11 +92,9 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '').strip()
-        
         if not username or not password:
             flash('Username and password cannot be empty.')
             return redirect(url_for('login'))
-            
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             login_user(user)
@@ -120,28 +107,22 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '').strip()
-        
-        # Backend safety net to prevent 'NoneType' crashes on empty forms
         if not username or not password:
             flash('Username and password cannot be empty.')
             return redirect(url_for('register'))
-            
         user = User.query.filter_by(username=username).first()
         if user:
             flash('Username already exists')
             return redirect(url_for('register'))
-        
         new_user = User(
             username=username, 
             password=generate_password_hash(password, method='pbkdf2:sha256'),
-            total_focus_time=0,
-            current_streak=0
+            total_focus_time=0, current_streak=0
         )
         db.session.add(new_user)
         db.session.commit()
         login_user(new_user)
         return redirect(url_for('home'))
-        
     return render_template('register.html')
 
 @app.route('/logout')
@@ -154,7 +135,6 @@ def logout():
 @login_required
 def update_time():
     data = request.get_json()
-    # Force safely cast to integer to prevent Float insertion crashes
     minutes = int(float(data.get('minutes', 0))) 
     category = data.get('category', 'General') 
     
@@ -173,7 +153,23 @@ def update_time():
     db.session.commit()
     return jsonify({'status': 'success'})
 
-# --- DATABASE CREATION ---
+# NEW: Super Safe Account Deletion Route
+@app.route('/delete_account', methods=['POST'])
+@login_required
+def delete_account():
+    try:
+        # First, safely delete all related focus sessions to prevent database locks
+        FocusSession.query.filter_by(user_id=current_user.id).delete()
+        # Second, delete the user entirely
+        db.session.delete(current_user)
+        db.session.commit()
+        logout_user()
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        print("Delete Account Error:", e)
+        db.session.rollback()
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 with app.app_context():
     db.create_all()
 
