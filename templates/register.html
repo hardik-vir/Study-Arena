@@ -14,6 +14,8 @@
     <title>Register - Deep Work Arena</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏳</text></svg>">
     <style>
+        * { box-sizing: border-box; } /* The fix to stop the box from stretching off-screen */
+        
         body { 
             background: linear-gradient(135deg, #0f172a, #1e293b); 
             color: #f8fafc; font-family: sans-serif; display: flex; 
@@ -27,6 +29,13 @@
         .pitch-section { padding: 50px; background: rgba(0,0,0,0.2); flex: 1; min-width: 300px; }
         .login-section { padding: 50px; flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; }
         
+        /* Smooth mobile adjustments */
+        @media (max-width: 768px) {
+            .split-card { width: 95%; border-radius: 16px; margin: 20px 0; }
+            .pitch-section, .login-section { padding: 30px 20px; min-width: 100%; }
+            h1 { font-size: 24px !important; }
+        }
+
         h1 { color: #f8fafc; font-size: 32px; margin-top: 0; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
         h2 { color: #10b981; margin-top: 0; } /* Green for register */
         p { color: #94a3b8; line-height: 1.6; }

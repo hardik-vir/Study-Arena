@@ -128,37 +128,34 @@
     <div class="dashboard-wrapper">
         <div class="bento-grid">
             
-            <!-- COLUMN 1: PROFILE & HEATMAP -->
+            <!-- COLUMN 1: LEADERBOARD & INSIGHTS (Moved to the left) -->
             <div class="bento-card">
-                <h2 style="color: #10b981; margin-bottom: 25px;">{{ user.username }}</h2>
-                
-                <div class="stat-block" style="text-align: center; display: block; border: 1px solid rgba(16, 185, 129, 0.2); background: rgba(16, 185, 129, 0.05);">
-                    <span style="color: #94a3b8; font-size: 14px; display: block; margin-bottom: 5px;">Current Rank</span>
-                    <strong style="color: #10b981; font-size: 24px; text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);">{{ user.rank }}</strong>
-                </div>
-                
-                <div class="stat-block">
-                    <span style="color: #94a3b8;">Total Time:</span>
-                    <strong>{{ (user.total_focus_time or 0) // 60 }}h {{ (user.total_focus_time or 0) % 60 }}m</strong>
-                </div>
-                <div class="stat-block">
-                    <span style="color: #94a3b8;">Current Streak:</span>
-                    <strong>{{ user.current_streak or 0 }} Days 🔥</strong>
-                </div>
-                
-                <h3 style="margin-top: 30px;">30-Day Activity</h3>
-                <div class="heatmap">
-                    {% for is_active in heatmap_data %}
-                    <div class="day-cell {% if is_active %}day-active{% endif %}"></div>
+                <h2>Global Rankings</h2>
+                <div style="margin-bottom: 30px;">
+                    {% for player in top_users %}
+                    <div class="stat-block {% if player.id == user.id %}current-user-rank{% endif %}" style="padding: 10px 15px;">
+                        <span style="font-size: 15px;">
+                            {% if loop.index == 1 %}👑
+                            {% elif loop.index == 2 %}🥈
+                            {% elif loop.index == 3 %}🥉
+                            {% else %}<span style="color: #64748b; font-weight: bold; margin-right: 8px;">#{{ loop.index }}</span>
+                            {% endif %}
+                            {{ player.username }}
+                        </span>
+                        <strong style="font-size: 14px;">{{ (player.total_focus_time or 0) // 60 }}h {{ (player.total_focus_time or 0) % 60 }}m</strong>
+                    </div>
+                    {% else %}
+                    <p style="color: #94a3b8; text-align: center;">No players yet.</p>
                     {% endfor %}
                 </div>
 
-                <a href="{{ url_for('logout') }}" style="text-decoration: none;"><button class="btn" style="background: rgba(255,255,255,0.1); color: #f8fafc;">Logout</button></a>
-                
-                <div class="danger-zone">
-                    <button class="danger-btn" onclick="resetStats()">Reset Stats</button>
-                    <button class="danger-btn" onclick="deleteAccount()">Delete Account</button>
+                <h3>Focus Breakdown</h3>
+                <div style="width: 180px; height: 180px; margin: 0 auto;">
+                    <canvas id="insightsChart"></canvas>
                 </div>
+                <script id="insights-data" type="text/plain">
+                    {{ insights | tojson | safe }}
+                </script>
             </div>
 
             <!-- COLUMN 2: THE ARENA TIMER -->
@@ -221,34 +218,37 @@
                 </div>
             </div>
 
-            <!-- COLUMN 3: LEADERBOARD & INSIGHTS -->
+            <!-- COLUMN 3: PROFILE & HEATMAP (Moved to the right) -->
             <div class="bento-card">
-                <h2>Global Rankings</h2>
-                <div style="margin-bottom: 30px;">
-                    {% for player in top_users %}
-                    <div class="stat-block {% if player.id == user.id %}current-user-rank{% endif %}" style="padding: 10px 15px;">
-                        <span style="font-size: 15px;">
-                            {% if loop.index == 1 %}👑
-                            {% elif loop.index == 2 %}🥈
-                            {% elif loop.index == 3 %}🥉
-                            {% else %}<span style="color: #64748b; font-weight: bold; margin-right: 8px;">#{{ loop.index }}</span>
-                            {% endif %}
-                            {{ player.username }}
-                        </span>
-                        <strong style="font-size: 14px;">{{ (player.total_focus_time or 0) // 60 }}h {{ (player.total_focus_time or 0) % 60 }}m</strong>
-                    </div>
-                    {% else %}
-                    <p style="color: #94a3b8; text-align: center;">No players yet.</p>
+                <h2 style="color: #10b981; margin-bottom: 25px;">{{ user.username }}</h2>
+                
+                <div class="stat-block" style="text-align: center; display: block; border: 1px solid rgba(16, 185, 129, 0.2); background: rgba(16, 185, 129, 0.05);">
+                    <span style="color: #94a3b8; font-size: 14px; display: block; margin-bottom: 5px;">Current Rank</span>
+                    <strong style="color: #10b981; font-size: 24px; text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);">{{ user.rank }}</strong>
+                </div>
+                
+                <div class="stat-block">
+                    <span style="color: #94a3b8;">Total Time:</span>
+                    <strong>{{ (user.total_focus_time or 0) // 60 }}h {{ (user.total_focus_time or 0) % 60 }}m</strong>
+                </div>
+                <div class="stat-block">
+                    <span style="color: #94a3b8;">Current Streak:</span>
+                    <strong>{{ user.current_streak or 0 }} Days 🔥</strong>
+                </div>
+                
+                <h3 style="margin-top: 30px;">30-Day Activity</h3>
+                <div class="heatmap">
+                    {% for is_active in heatmap_data %}
+                    <div class="day-cell {% if is_active %}day-active{% endif %}"></div>
                     {% endfor %}
                 </div>
 
-                <h3>Focus Breakdown</h3>
-                <div style="width: 180px; height: 180px; margin: 0 auto;">
-                    <canvas id="insightsChart"></canvas>
+                <a href="{{ url_for('logout') }}" style="text-decoration: none;"><button class="btn" style="background: rgba(255,255,255,0.1); color: #f8fafc;">Logout</button></a>
+                
+                <div class="danger-zone">
+                    <button class="danger-btn" onclick="resetStats()">Reset Stats</button>
+                    <button class="danger-btn" onclick="deleteAccount()">Delete Account</button>
                 </div>
-                <script id="insights-data" type="text/plain">
-                    {{ insights | tojson | safe }}
-                </script>
             </div>
         </div>
     </div>
