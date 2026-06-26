@@ -52,7 +52,14 @@
         .time-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
         .time-btn:hover { background: rgba(255,255,255,0.2); }
         
-        .category-select { width: 100%; background: rgba(0,0,0,0.3); color: #f8fafc; border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; font-size: 15px; margin-bottom: 20px; outline: none; cursor: pointer; }
+        /* THE FIX: Replaced default arrows with a custom SVG to perfectly align them */
+        .category-select { 
+            width: 100%; background: rgba(0,0,0,0.3); color: #f8fafc; border: 1px solid rgba(255,255,255,0.1); 
+            padding: 12px 35px 12px 15px; border-radius: 12px; font-size: 15px; margin-bottom: 20px; outline: none; cursor: pointer;
+            appearance: none; -webkit-appearance: none; -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat; background-position: right 15px center; background-size: 12px auto;
+        }
         .stat-block { display: flex; justify-content: space-between; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 12px; margin-bottom: 10px; }
         
         /* THE FIX: Move the leaderboard highlight into its own CSS class */
@@ -126,7 +133,8 @@
 
             <div style="text-align: center; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
                 <span style="color: #94a3b8; font-size: 14px; margin-right: 10px; font-weight: bold;">Ambient Noise:</span>
-                <select id="ambient-sound" class="category-select" style="width: auto; margin-bottom: 0; padding: 6px 12px; display: inline-block;" onchange="changeAmbient()">
+                <!-- THE FIX: Adjusted padding to properly fit the new aligned arrow -->
+                <select id="ambient-sound" class="category-select" style="width: auto; margin-bottom: 0; padding: 8px 35px 8px 15px; display: inline-block;" onchange="changeAmbient()">
                     <option value="none">🔇 None</option>
                     <option value="rain">🌧️ Rain</option>
                     <option value="cafe">☕ Cafe</option>
@@ -135,7 +143,11 @@
                 <audio id="ambient-player" loop></audio>
             </div>
 
-            <button class="btn" id="start-btn" onclick="toggleTimer()">Start Focus</button>
+            <!-- THE FIX: Added the Reset Timer button side-by-side -->
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" id="start-btn" onclick="toggleTimer()">Start Focus</button>
+                <button class="btn" onclick="resetTimer()" style="background: rgba(255,255,255,0.1); color: #f8fafc; border: 1px solid rgba(255,255,255,0.05);">Reset Timer</button>
+            </div>
         </div>
 
         <!-- PAGE 2: LEADERBOARD -->
@@ -213,7 +225,7 @@
             }
         }
 
-       const ambientPlayer = document.getElementById('ambient-player');
+        const ambientPlayer = document.getElementById('ambient-player');
         const ambientTracks = {
             'rain': '/static/sounds/rain.wav',
             'cafe': '/static/sounds/cafe.wav',
@@ -268,6 +280,15 @@
             if (isRunning) return; 
             const input = document.getElementById('custom-minutes'), mins = parseInt(input.value);
             if (mins && mins > 0) { setTime(mins); input.value = ''; }
+        }
+
+        // THE FIX: Logic for the new reset button
+        function resetTimer() {
+            if (timerId) clearInterval(timerId);
+            isRunning = false;
+            timeLeft = duration;
+            startBtn.innerText = 'Start Focus';
+            updateDisplay();
         }
 
         function toggleTimer() {
