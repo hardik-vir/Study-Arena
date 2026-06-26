@@ -41,7 +41,7 @@ def handle_exception(e):
 
 # --- DATABASE MODELS ---
 class User(UserMixin, db.Model):
-    __tablename__ = 'users_v6' 
+    __tablename__ = 'users_v7' # THE FIX: Bumped to V7 for Heatmap support
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False) 
@@ -58,12 +58,12 @@ class User(UserMixin, db.Model):
         else: return "Grandmaster 👑"
 
 class FocusSession(db.Model):
-    __tablename__ = 'sessions_v6' 
+    __tablename__ = 'sessions_v7' # THE FIX: Bumped to V7 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users_v6.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users_v7.id'), nullable=False) # THE FIX: Updated Foreign Key
     duration_minutes = db.Column(db.Integer, default=0)
     category = db.Column(db.String(50), default="General")
-    date = db.Column(db.DateTime, default=db.func.current_timestamp())
+    date = db.Column(db.DateTime, default=db.func.current_timestamp()) # The new Heatmap column!
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -103,6 +103,7 @@ def home():
             heatmap_data.append(d in active_dates)
     except Exception as e:
         print("Heatmap Error:", e)
+        db.session.rollback()
         heatmap_data = [False] * 30
 
     return render_template('index.html', user=current_user, top_users=top_users, insights=insights, heatmap_data=heatmap_data)
