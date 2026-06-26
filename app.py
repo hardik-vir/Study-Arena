@@ -28,7 +28,7 @@ login_manager.login_view = 'login'
 
 # --- DATABASE MODELS ---
 class User(UserMixin, db.Model):
-    __tablename__ = 'arena_users_v2' # THE FIX: Forced fresh start for stability
+    __tablename__ = 'users_v3' # CLEAN SLATE
     
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
@@ -49,10 +49,11 @@ class User(UserMixin, db.Model):
             return "Grandmaster 👑"
 
 class FocusSession(db.Model):
-    __tablename__ = 'focus_sessions_v2' # THE FIX: Forced fresh start
+    __tablename__ = 'sessions_v3' # CLEAN SLATE
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('arena_users_v2.id'), nullable=False)
+    # THE FIX: This now perfectly matches 'users_v3.id'
+    user_id = db.Column(db.Integer, db.ForeignKey('users_v3.id'), nullable=False)
     duration_minutes = db.Column(db.Integer, nullable=False)
     category = db.Column(db.String(50), nullable=False, default="General")
     date = db.Column(db.DateTime, default=db.func.current_timestamp())
@@ -65,28 +66,21 @@ def load_user(user_id):
 @app.route('/')
 @login_required
 def home():
+    top_users = User.query.order_by(User.total_focus_time.desc()).limit(10).all()
+    
     try:
-        # 1. Load Leaderboard
-        top_users = User.query.order_by(User.total_focus_time.desc()).limit(10).all()
-        
-        # 2. Load Chart Data Safely
         category_data = db.session.query(
             FocusSession.category, 
             func.sum(FocusSession.duration_minutes)
         ).filter(FocusSession.user_id == current_user.id).group_by(FocusSession.category).all()
         
-        # Format for Chart.js safely protecting against None values
-        insights = {cat: int(mins) for cat, mins in category_data if mins is not None}
-        
-        if not insights:
-            insights = {"Start a timer to see insights": 1}
-
+        insights = {cat: int(mins) for cat, mins in category_data}
     except Exception as e:
-        # THE FIX: If the database fails, rollback and don't crash the app!
-        db.session.rollback()
-        top_users = []
-        insights = {"Data Loading Error - Try again": 1}
-        print(f"Error loading home page: {e}")
+        print("Database Error:", e)
+        insights = {}
+        
+    if not insights:
+        insights = {"Start a timer to see insights": 1}
 
     return render_template('index.html', user=current_user, top_users=top_users, insights=insights)
 
@@ -95,11 +89,16 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        user = User.query.filter_by(username=username).first()
-        if user and check_password_hash(user.password, password):
-            login_user(user)
-            return redirect(url_for('home'))
-        flash('Invalid username or password')
+        try:
+            user = User.query.filter_by(username=username).first()
+            if user and check_password_hash(user.password, password):
+                login_user(user)
+                return redirect(url_for('home'))
+            flash('Invalid username or password')
+        except Exception as e:
+            print(e)
+            db.session.rollback() # Safety net
+            flash('Database connecting... Please try again.')
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -107,15 +106,20 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        user = User.query.filter_by(username=username).first()
-        if user:
-            flash('Username already exists')
-            return redirect(url_for('register'))
-        new_user = User(username=username, password=generate_password_hash(password, method='pbkdf2:sha256'))
-        db.session.add(new_user)
-        db.session.commit()
-        login_user(new_user)
-        return redirect(url_for('home'))
+        try:
+            user = User.query.filter_by(username=username).first()
+            if user:
+                flash('Username already exists')
+                return redirect(url_for('register'))
+            new_user = User(username=username, password=generate_password_hash(password, method='pbkdf2:sha256'))
+            db.session.add(new_user)
+            db.session.commit()
+            login_user(new_user)
+            return redirect(url_for('home'))
+        except Exception as e:
+            print(e)
+            db.session.rollback() # Safety net
+            flash('Database creating... Please try again.')
     return render_template('register.html')
 
 @app.route('/logout')
@@ -127,31 +131,23 @@ def logout():
 @app.route('/update_time', methods=['POST'])
 @login_required
 def update_time():
-    try:
-        data = request.get_json()
-        minutes = data.get('minutes', 0)
-        category = data.get('category', 'General') 
-        
-        current_user.total_focus_time += minutes
-        today = date.today()
-        
-        if current_user.last_focus_date == today - timedelta(days=1):
-            current_user.current_streak += 1
-        elif current_user.last_focus_date != today:
-            current_user.current_streak = 1
-        current_user.last_focus_date = today
-        
-        new_session = FocusSession(user_id=current_user.id, duration_minutes=minutes, category=category)
-        db.session.add(new_session)
-        
-        db.session.commit()
-        return jsonify({'status': 'success'})
-        
-    except Exception as e:
-        # THE FIX: Safely catch save errors
-        db.session.rollback()
-        print(f"Error saving time: {e}")
-        return jsonify({'status': 'error', 'message': 'Database error'}), 500
+    data = request.get_json()
+    minutes = data.get('minutes', 0)
+    category = data.get('category', 'General') 
+    
+    current_user.total_focus_time += minutes
+    today = date.today()
+    if current_user.last_focus_date == today - timedelta(days=1):
+        current_user.current_streak += 1
+    elif current_user.last_focus_date != today:
+        current_user.current_streak = 1
+    current_user.last_focus_date = today
+    
+    new_session = FocusSession(user_id=current_user.id, duration_minutes=minutes, category=category)
+    db.session.add(new_session)
+    
+    db.session.commit()
+    return jsonify({'status': 'success'})
 
 # --- DATABASE CREATION ---
 with app.app_context():
