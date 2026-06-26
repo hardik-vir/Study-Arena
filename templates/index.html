@@ -14,53 +14,59 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏳</text></svg>">
     <title>Deep Work Arena</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
-        /* Dynamic Background & Glassmorphism styling */
         body { 
             background-color: #0f172a; 
             background: linear-gradient(135deg, #0f172a, #1e293b); 
-            transition: background 1s ease; /* Smooth background transitions */
+            transition: background 1s ease; 
             color: #f8fafc; font-family: sans-serif; display: flex; 
-            justify-content: center; padding-top: 100px; margin: 0; min-height: 100vh;
+            flex-direction: column; align-items: center; margin: 0; min-height: 100vh;
         }
         
-        /* Themes triggered by JS */
         body.rain { background: linear-gradient(135deg, #0f172a, #1e3a8a); }
         body.cafe { background: linear-gradient(135deg, #0f172a, #451a03); }
         body.waves { background: linear-gradient(135deg, #0f172a, #115e59); }
 
         .navbar { 
-            position: fixed; top: 0; left: 0; width: 100%; 
-            background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(10px); 
+            width: 100%; background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(10px); 
             padding: 15px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.3); 
-            text-align: center; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.05);
+            text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05);
+            position: sticky; top: 0; z-index: 1000;
         }
         .navbar-brand { color: #f8fafc; font-size: 24px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; margin: 0; text-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
         
-        /* Frosted Glass Card */
-        .arena-card { 
-            background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(15px); 
-            border: 1px solid rgba(255,255,255,0.1); padding: 40px; 
-            border-radius: 24px; width: 400px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); 
+        /* New Bento Grid Container */
+        .dashboard-wrapper {
+            max-width: 1400px; width: 100%; padding: 40px 20px; box-sizing: border-box;
+            display: flex; flex-direction: column; flex-grow: 1;
+        }
+        
+        .bento-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr;
+            gap: 25px;
+            align-items: start;
         }
 
-        .tabs { display: flex; justify-content: space-around; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
-        .tab-btn { background: none; border: none; color: #94a3b8; padding: 10px 15px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
-        .tab-btn:hover { color: #e2e8f0; }
-        .tab-btn.active { color: #38bdf8; border-bottom: 2px solid #38bdf8; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        
-        .timer-display { text-align: center; margin: 20px 0; position: relative; }
+        .bento-card { 
+            background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(15px); 
+            border: 1px solid rgba(255,255,255,0.1); padding: 30px; 
+            border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); 
+        }
+
+        h2 { color: #38bdf8; margin-top: 0; font-weight: 800; text-align: center; font-size: 20px; }
+        h3 { color: #94a3b8; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; margin-top: 0; }
+
+        .timer-display { text-align: center; margin: 20px 0; position: relative; display: flex; justify-content: center;}
         .time-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; font-weight: bold; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
         .btn { background: #38bdf8; color: #0f172a; border: none; padding: 12px 24px; border-radius: 12px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; transition: 0.2s; }
         .btn:hover { background: #0ea5e9; transform: translateY(-2px); }
         
         .time-buttons { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
-        .time-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .time-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; flex: 1; }
         .time-btn:hover { background: rgba(255,255,255,0.2); }
         
-        /* Custom Dropdown SVG Arrow */
         .category-select { 
             width: 100%; background: rgba(0,0,0,0.3); color: #f8fafc; border: 1px solid rgba(255,255,255,0.1); 
             padding: 12px 35px 12px 15px; border-radius: 12px; font-size: 15px; margin-bottom: 20px; outline: none; cursor: pointer;
@@ -68,28 +74,31 @@
             background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E");
             background-repeat: no-repeat; background-position: right 15px center; background-size: 12px auto;
         }
-        .stat-block { display: flex; justify-content: space-between; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 12px; margin-bottom: 10px; }
         
+        .stat-block { display: flex; justify-content: space-between; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 12px; margin-bottom: 10px; align-items: center; border: 1px solid rgba(255,255,255,0.02);}
         .current-user-rank { background: rgba(56, 189, 248, 0.1) !important; border: 1px solid rgba(56, 189, 248, 0.3); }
 
-        /* Beautiful Heatmap CSS */
-        .heatmap { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; margin-top: 15px; margin-bottom: 25px; }
+        .heatmap { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; margin-bottom: 25px; }
         .day-cell { width: 100%; aspect-ratio: 1; border-radius: 4px; background: rgba(255,255,255,0.05); transition: 0.3s; }
         .day-active { background: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.6); }
 
-        .logout-btn { background: rgba(255,255,255,0.1); color: #f8fafc; margin-top: 20px; }
-        .logout-btn:hover { background: rgba(255,255,255,0.2); }
-        .reset-btn { background: #475569; color: white; margin-top: 10px; }
-        .reset-btn:hover { background: #334155; }
-        .delete-btn { background: #7f1d1d; margin-top: 10px; color: #f8fafc; }
-        .delete-btn:hover { background: #991b1b; }
-        
-        svg { transform: rotate(-90deg); filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.3)); }
+        /* History Feed Styling */
+        .history-feed { max-height: 250px; overflow-y: auto; padding-right: 5px; }
+        .history-feed::-webkit-scrollbar { width: 6px; }
+        .history-feed::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 10px; }
+        .history-feed::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        .history-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px;}
+        .history-item:last-child { border-bottom: none; }
+
+        .danger-zone { display: flex; gap: 10px; margin-top: 20px; }
+        .danger-btn { flex: 1; background: transparent; color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; font-size: 12px; cursor: pointer; transition: 0.2s; }
+        .danger-btn:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
+
+        svg.timer-svg { transform: rotate(-90deg); filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.3)); }
         circle { transition: stroke-dashoffset 1s linear; }
         
-        /* Footer & Social Links Styling */
         .app-footer {
-            margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05);
+            margin-top: auto; padding: 30px 0; 
             text-align: center; font-size: 14px; color: #94a3b8; display: flex; flex-direction: column; align-items: center; gap: 12px;
         }
         .social-links { display: flex; gap: 20px; }
@@ -104,156 +113,158 @@
         }
         #toast-container.show { visibility: visible; opacity: 1; bottom: 50px; }
         
-        @media (max-width: 600px) { .arena-card { width: 95%; padding: 25px; margin-top: -10px; } svg { max-width: 100%; height: auto; } .time-buttons { flex-wrap: wrap; } }
+        /* Mobile Stack */
+        @media (max-width: 1024px) { 
+            .bento-grid { grid-template-columns: 1fr; } 
+            .timer-display svg { max-width: 250px; height: auto; }
+        }
     </style>
 </head>
 <body>
     <nav class="navbar"><h1 class="navbar-brand">Deep Work Arena</h1></nav>
-    
     <div id="toast-container">🎉 Session Logged! Leveling up...</div>
 
-    <div class="arena-card">
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab(event, 'timer')">Timer</button>
-            <button class="tab-btn" onclick="switchTab(event, 'leaderboard')">Leaderboard</button>
-            <button class="tab-btn" onclick="switchTab(event, 'profile')">Profile</button>
-        </div>
+    <div class="dashboard-wrapper">
+        <div class="bento-grid">
+            
+            <!-- COLUMN 1: PROFILE & HEATMAP -->
+            <div class="bento-card">
+                <h2 style="color: #10b981; margin-bottom: 25px;">{{ user.username }}</h2>
+                
+                <div class="stat-block" style="text-align: center; display: block; border: 1px solid rgba(16, 185, 129, 0.2); background: rgba(16, 185, 129, 0.05);">
+                    <span style="color: #94a3b8; font-size: 14px; display: block; margin-bottom: 5px;">Current Rank</span>
+                    <strong style="color: #10b981; font-size: 24px; text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);">{{ user.rank }}</strong>
+                </div>
+                
+                <div class="stat-block">
+                    <span style="color: #94a3b8;">Total Time:</span>
+                    <strong>{{ (user.total_focus_time or 0) // 60 }}h {{ (user.total_focus_time or 0) % 60 }}m</strong>
+                </div>
+                <div class="stat-block">
+                    <span style="color: #94a3b8;">Current Streak:</span>
+                    <strong>{{ user.current_streak or 0 }} Days 🔥</strong>
+                </div>
+                
+                <h3 style="margin-top: 30px;">30-Day Activity</h3>
+                <div class="heatmap">
+                    {% for is_active in heatmap_data %}
+                    <div class="day-cell {% if is_active %}day-active{% endif %}"></div>
+                    {% endfor %}
+                </div>
 
-        <!-- PAGE 1: TIMER -->
-        <div id="timer-view" class="tab-content active">
-            <select id="task-category" class="category-select">
-                <option value="Coding">💻 Coding</option>
-                <option value="Studying">📚 Studying</option>
-                <option value="Reading">📖 Reading</option>
-                <option value="Work">💼 Work</option>
-                <option value="General">⚡ General Focus</option>
-            </select>
-            
-            <div class="time-buttons">
-                <button class="time-btn" onclick="setTime(10)">10 Min</button>
-                <button class="time-btn" onclick="setTime(30)">30 Min</button>
-                <button class="time-btn" onclick="setTime(60)">1 Hour</button>
-            </div>
-            
-            <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 25px;">
-                <input type="number" id="custom-minutes" placeholder="Custom (mins)" min="1" style="background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; width: 120px; outline: none; font-size: 14px;">
-                <button class="time-btn" onclick="setCustomTime()" style="background: #38bdf8; color: #0f172a; font-weight: bold; border: none;">Set</button>
-            </div>
-            
-            <div class="timer-display">
-                <svg width="200" height="200">
-                    <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="10"></circle>
-                    <circle id="progress-ring" cx="100" cy="100" r="90" fill="none" stroke="#38bdf8" stroke-width="10" stroke-dasharray="565" stroke-dashoffset="0"></circle>
-                </svg>
-                <div class="time-text" id="time-left">30:00</div>
-            </div>
-
-            <div style="text-align: center; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-                <span style="color: #94a3b8; font-size: 14px; margin-right: 10px; font-weight: bold;">Ambient Noise:</span>
-                <select id="ambient-sound" class="category-select" style="width: auto; margin-bottom: 0; padding: 8px 35px 8px 15px; display: inline-block;" onchange="changeAmbient()">
-                    <option value="none">🔇 None</option>
-                    <option value="rain">🌧️ Rain</option>
-                    <option value="cafe">☕ Cafe</option>
-                    <option value="waves">🌊 Waves</option>
-                </select>
-                <audio id="ambient-player" loop></audio>
+                <a href="{{ url_for('logout') }}" style="text-decoration: none;"><button class="btn" style="background: rgba(255,255,255,0.1); color: #f8fafc;">Logout</button></a>
+                
+                <div class="danger-zone">
+                    <button class="danger-btn" onclick="resetStats()">Reset Stats</button>
+                    <button class="danger-btn" onclick="deleteAccount()">Delete Account</button>
+                </div>
             </div>
 
-            <div style="display: flex; gap: 10px;">
-                <button class="btn" id="start-btn" onclick="toggleTimer()">Start Focus</button>
-                <button class="btn" onclick="resetTimer()" style="background: rgba(255,255,255,0.1); color: #f8fafc; border: 1px solid rgba(255,255,255,0.05);">Reset Timer</button>
-            </div>
-        </div>
+            <!-- COLUMN 2: THE ARENA TIMER -->
+            <div class="bento-card" style="border: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 0 40px rgba(56, 189, 248, 0.1);">
+                <h2>Focus Arena</h2>
+                
+                <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                    <select id="task-category" class="category-select" style="margin-bottom: 0;">
+                        <option value="Coding">💻 Coding</option>
+                        <option value="Studying">📚 Studying</option>
+                        <option value="Reading">📖 Reading</option>
+                        <option value="Work">💼 Work</option>
+                        <option value="General">⚡ General</option>
+                    </select>
+                    <select id="ambient-sound" class="category-select" style="margin-bottom: 0;" onchange="changeAmbient()">
+                        <option value="none">🔇 No Sound</option>
+                        <option value="rain">🌧️ Rain</option>
+                        <option value="cafe">☕ Cafe</option>
+                        <option value="waves">🌊 Waves</option>
+                    </select>
+                    <audio id="ambient-player" loop></audio>
+                </div>
+                
+                <div class="time-buttons">
+                    <button class="time-btn" onclick="setTime(10)">10m</button>
+                    <button class="time-btn" onclick="setTime(25)">25m</button>
+                    <button class="time-btn" onclick="setTime(60)">1h</button>
+                    <div style="display: flex; gap: 5px; flex: 1.5;">
+                        <input type="number" id="custom-minutes" placeholder="Mins" min="1" style="background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; width: 100%; outline: none; font-size: 14px;">
+                        <button class="time-btn" onclick="setCustomTime()" style="background: #38bdf8; color: #0f172a; font-weight: bold; flex: 0.5;">Set</button>
+                    </div>
+                </div>
+                
+                <div class="timer-display">
+                    <svg width="240" height="240" class="timer-svg">
+                        <circle cx="120" cy="120" r="110" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="12"></circle>
+                        <circle id="progress-ring" cx="120" cy="120" r="110" fill="none" stroke="#38bdf8" stroke-width="12" stroke-dasharray="691" stroke-dashoffset="0"></circle>
+                    </svg>
+                    <div class="time-text" id="time-left">25:00</div>
+                </div>
 
-        <!-- PAGE 2: LEADERBOARD -->
-        <div id="leaderboard-view" class="tab-content">
-            <h2 style="color: #38bdf8; margin-top: 0; font-weight: 800; text-align: center;">Global Rankings</h2>
-            {% for player in top_users %}
-            <div class="stat-block {% if player.id == user.id %}current-user-rank{% endif %}">
-                <span style="font-size: 18px;">
-                    {% if loop.index == 1 %}👑
-                    {% elif loop.index == 2 %}🥈
-                    {% elif loop.index == 3 %}🥉
-                    {% else %}<span style="color: #64748b; font-weight: bold; margin-right: 8px;">#{{ loop.index }}</span>
-                    {% endif %}
-                    {{ player.username }}
-                </span>
-                <strong>{{ (player.total_focus_time or 0) // 60 }}h {{ (player.total_focus_time or 0) % 60 }}m</strong>
-            </div>
-            {% else %}
-            <p style="color: #94a3b8; text-align: center;">No players yet. Be the first!</p>
-            {% endfor %}
-        </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn" id="start-btn" onclick="toggleTimer()" style="font-size: 18px; padding: 15px;">Start Focus</button>
+                    <button class="btn" onclick="resetTimer()" style="background: rgba(255,255,255,0.1); color: #f8fafc; border: 1px solid rgba(255,255,255,0.05); flex: 0.4;">Reset</button>
+                </div>
 
-        <!-- PAGE 3: PROFILE -->
-        <div id="profile-view" class="tab-content">
-            <h2 style="color: #10b981; margin-top: 0; font-weight: 800; text-align: center;">{{ user.username }}</h2>
-            
-            <div class="stat-block" style="text-align: center; margin-bottom: 20px; display: block; border: 1px solid rgba(16, 185, 129, 0.2);">
-                <span style="color: #94a3b8; font-size: 14px; display: block; margin-bottom: 5px;">Current Rank</span>
-                <strong style="color: #10b981; font-size: 24px; text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);">{{ user.rank }}</strong>
-            </div>
-            
-            <div class="stat-block">
-                <span style="color: #94a3b8;">Total Focus Time:</span>
-                <strong>{{ (user.total_focus_time or 0) // 60 }}h {{ (user.total_focus_time or 0) % 60 }}m</strong>
-            </div>
-            <div class="stat-block">
-                <span style="color: #94a3b8;">Current Streak:</span>
-                <strong>{{ user.current_streak or 0 }} Days 🔥</strong>
-            </div>
-            
-            <!-- GitHub Heatmap Grid -->
-            <h3 style="text-align: left; color: #94a3b8; margin-top: 30px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">30-Day Activity</h3>
-            <div class="heatmap">
-                {% for is_active in heatmap_data %}
-                <div class="day-cell {% if is_active %}day-active{% endif %}"></div>
-                {% endfor %}
+                <h3 style="margin-top: 30px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">Recent Sessions</h3>
+                <div class="history-feed">
+                    {% for session in recent_history %}
+                    <div class="history-item">
+                        <span style="color: #e2e8f0;">{{ session.category }}</span>
+                        <span style="color: #38bdf8; font-weight: bold;">+{{ session.duration_minutes }} min</span>
+                    </div>
+                    {% else %}
+                    <p style="text-align: center; color: #64748b; font-size: 14px;">No recent sessions. Start the timer!</p>
+                    {% endfor %}
+                </div>
             </div>
 
-            <h3 style="text-align: center; color: #94a3b8; margin-top: 30px; font-size: 16px;">Focus Insights</h3>
-            <div style="width: 200px; height: 200px; margin: 0 auto 20px auto;">
-                <canvas id="insightsChart"></canvas>
-            </div>
-            
-            <script id="insights-data" type="text/plain">
-                {{ insights | tojson | safe }}
-            </script>
-            
-            <a href="{{ url_for('logout') }}" style="text-decoration: none;"><button class="btn logout-btn">Logout</button></a>
-            <!-- Danger Zone -->
-            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-                <button class="btn reset-btn" onclick="resetStats()">Reset Progress</button>
-                <button class="btn delete-btn" onclick="deleteAccount()">Delete Account</button>
-            </div>
-        </div>
+            <!-- COLUMN 3: LEADERBOARD & INSIGHTS -->
+            <div class="bento-card">
+                <h2>Global Rankings</h2>
+                <div style="margin-bottom: 30px;">
+                    {% for player in top_users %}
+                    <div class="stat-block {% if player.id == user.id %}current-user-rank{% endif %}" style="padding: 10px 15px;">
+                        <span style="font-size: 15px;">
+                            {% if loop.index == 1 %}👑
+                            {% elif loop.index == 2 %}🥈
+                            {% elif loop.index == 3 %}🥉
+                            {% else %}<span style="color: #64748b; font-weight: bold; margin-right: 8px;">#{{ loop.index }}</span>
+                            {% endif %}
+                            {{ player.username }}
+                        </span>
+                        <strong style="font-size: 14px;">{{ (player.total_focus_time or 0) // 60 }}h {{ (player.total_focus_time or 0) % 60 }}m</strong>
+                    </div>
+                    {% else %}
+                    <p style="color: #94a3b8; text-align: center;">No players yet.</p>
+                    {% endfor %}
+                </div>
 
-        <!-- Global Footer -->
-        <div class="app-footer">
-            <div>Built by <strong>Hardik Virani</strong> 🚀</div>
-            <div class="social-links">
-                <a href="https://www.linkedin.com/in/hardik-virani-807020370/" target="_blank">
-                    <svg viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
-                    LinkedIn
-                </a>
-                <a href="#" onclick="copyEmail(event)">
-                    <svg viewBox="0 0 24 24"><path d="M0 3v18h24v-18h-24zm6.623 7.929l-4.623 5.712v-9.458l4.623 3.746zm-4.141-5.929h19.035l-9.517 7.713-9.518-7.713zm5.694 7.188l3.824 3.099 3.83-3.104 5.612 6.817h-18.779l5.513-6.812zm9.208-1.264l4.616-3.741v9.348l-4.616-5.607z"/></svg>
-                    Contact
-                </a>
+                <h3>Focus Breakdown</h3>
+                <div style="width: 180px; height: 180px; margin: 0 auto;">
+                    <canvas id="insightsChart"></canvas>
+                </div>
+                <script id="insights-data" type="text/plain">
+                    {{ insights | tojson | safe }}
+                </script>
             </div>
         </div>
     </div>
 
-    <script>
-        function switchTab(event, tabId) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(tabId + '-view').classList.add('active');
-            if (event && event.currentTarget) {
-                event.currentTarget.classList.add('active');
-            }
-        }
+    <!-- Global Footer -->
+    <div class="app-footer">
+        <div>Built by <strong>Hardik Virani</strong> 🚀</div>
+        <div class="social-links">
+            <a href="https://www.linkedin.com/in/hardik-virani-807020370/" target="_blank">
+                <svg viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                LinkedIn
+            </a>
+            <a href="#" onclick="copyEmail(event)">
+                <svg viewBox="0 0 24 24"><path d="M0 3v18h24v-18h-24zm6.623 7.929l-4.623 5.712v-9.458l4.623 3.746zm-4.141-5.929h19.035l-9.517 7.713-9.518-7.713zm5.694 7.188l3.824 3.099 3.83-3.104 5.612 6.817h-18.779l5.513-6.812zm9.208-1.264l4.616-3.741v9.348l-4.616-5.607z"/></svg>
+                Contact
+            </a>
+        </div>
+    </div>
 
+    <script>
         const ambientPlayer = document.getElementById('ambient-player');
         const ambientTracks = {
             'rain': '/static/sounds/rain.wav',
@@ -274,23 +285,17 @@
             }
         }
 
-        // Upgraded Toast Notification System
         let toastTimeout;
         function showToast(message) {
             const toast = document.getElementById("toast-container");
             toast.innerText = message || "🎉 Session Logged! Leveling up...";
             toast.className = "show";
-            
             clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => { 
-                toast.className = toast.className.replace("show", ""); 
-            }, 3000);
+            toastTimeout = setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        // New Email Copy Function
         function copyEmail(e) {
             e.preventDefault();
-            // Fallback clipboard logic to ensure it works anywhere (even in restrictive iframes)
             const textArea = document.createElement("textarea");
             textArea.value = "hardikvirani.work@zohomail.in";
             document.body.appendChild(textArea);
@@ -307,11 +312,10 @@
         const successDing = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
         successDing.volume = 0.6; 
 
-        // THE FIX: Add pingInterval to your variables
-        let duration = 30 * 60, timeLeft = duration, timerId = null, isRunning = false, endTime = null, pingInterval = null; 
+        let duration = 25 * 60, timeLeft = duration, timerId = null, isRunning = false, endTime = null, pingInterval = null; 
         const timeText = document.getElementById('time-left'), progressRing = document.getElementById('progress-ring');
         const startBtn = document.getElementById('start-btn'); 
-        const circumference = 2 * Math.PI * 90;
+        const circumference = 2 * Math.PI * 110;
 
         function updateDisplay() {
             let minutes = Math.floor(timeLeft / 60), seconds = timeLeft % 60;
@@ -337,7 +341,6 @@
 
         function resetTimer() {
             if (timerId) clearInterval(timerId);
-            // THE FIX: Stop pinging if timer is reset
             if (pingInterval) clearInterval(pingInterval); 
             isRunning = false;
             timeLeft = duration;
@@ -348,13 +351,12 @@
         function toggleTimer() {
             if (isRunning) {
                 clearInterval(timerId); 
-                // THE FIX: Stop pinging when paused
                 if (pingInterval) clearInterval(pingInterval); 
                 startBtn.innerText = 'Start Focus'; isRunning = false;
             } else {
                 endTime = Date.now() + (timeLeft * 1000);
                 
-                // THE FIX: Start the Heartbeat (Pings every 5 minutes to prevent Render sleep)
+                // Keeps the Render server awake during long study sessions
                 pingInterval = setInterval(() => {
                     fetch('/ping').catch(e => console.log("Heartbeat missed"));
                 }, 5 * 60 * 1000);
@@ -363,11 +365,9 @@
                     timeLeft = Math.round((endTime - Date.now()) / 1000);
                     if (timeLeft <= 0) {
                         timeLeft = 0; updateDisplay(); clearInterval(timerId); 
-                        // THE FIX: Stop pinging when finished
                         if (pingInterval) clearInterval(pingInterval);
                         
                         isRunning = false; startBtn.innerText = 'Start Focus';
-                        
                         successDing.play().catch(e => console.log("Sound blocked"));
                         showToast(); 
                         
@@ -386,7 +386,6 @@
         }
         updateDisplay(); 
 
-        // Reset and Delete Logic
         function resetStats() {
             if(confirm("Are you sure? This will permanently wipe your focus history and streak!")) {
                 fetch('/reset_stats', { method: 'POST' })
@@ -396,22 +395,17 @@
         }
 
         function deleteAccount() {
-            const confirmed = confirm("⚠️ Are you SURE you want to delete your account? This will erase all your data permanently. This cannot be undone.");
-            if (confirmed) {
+            if (confirm("⚠️ Are you SURE you want to delete your account? This will erase all your data permanently. This cannot be undone.")) {
                 fetch('/delete_account', { method: 'POST' })
                 .then(response => response.json())
                 .then(data => {
-                    if(data.status === 'success') {
-                        window.location.href = '/login';
-                    } else {
-                        alert("Error deleting account: " + data.message);
-                    }
-                })
-                .catch(err => console.error("Delete error:", err));
+                    if(data.status === 'success') { window.location.href = '/login'; } 
+                    else { alert("Error deleting account: " + data.message); }
+                }).catch(err => console.error("Delete error:", err));
             }
         }
 
-        // Chart Data Parsing
+        // Chart.js Setup
         let rawInsights = {"Start a timer to see insights": 1};
         try {
             const dataElement = document.getElementById('insights-data');
@@ -429,10 +423,8 @@
                     labels: Object.keys(rawInsights),
                     datasets: [{ data: Object.values(rawInsights), backgroundColor: ['#38bdf8', '#10b981', '#fbbf24', '#a855f7', '#ef4444'], borderWidth: 0, hoverOffset: 5 }]
                 },
-                options: { plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }, cutout: '75%' }
+                options: { plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: {size: 11} } } }, cutout: '75%' }
             });
-        } else {
-            console.error("Chart.js failed to load.");
         }
     </script>
 </body>

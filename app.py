@@ -41,7 +41,7 @@ def handle_exception(e):
 
 # --- DATABASE MODELS ---
 class User(UserMixin, db.Model):
-    __tablename__ = 'users_v7' # THE FIX: Bumped to V7 for Heatmap support
+    __tablename__ = 'users_v7'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False) 
@@ -58,12 +58,12 @@ class User(UserMixin, db.Model):
         else: return "Grandmaster 👑"
 
 class FocusSession(db.Model):
-    __tablename__ = 'sessions_v7' # THE FIX: Bumped to V7 
+    __tablename__ = 'sessions_v7' 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users_v7.id'), nullable=False) # THE FIX: Updated Foreign Key
+    user_id = db.Column(db.Integer, db.ForeignKey('users_v7.id'), nullable=False) 
     duration_minutes = db.Column(db.Integer, default=0)
     category = db.Column(db.String(50), default="General")
-    date = db.Column(db.DateTime, default=db.func.current_timestamp()) # The new Heatmap column!
+    date = db.Column(db.DateTime, default=db.func.current_timestamp()) 
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -92,12 +92,8 @@ def home():
     try:
         today = date.today()
         thirty_days_ago = today - timedelta(days=30)
-        recent_sessions = FocusSession.query.filter(FocusSession.user_id == current_user.id, FocusSession.date >= thirty_days_ago).all()
-        
-        # Extract unique dates the user was active
-        active_dates = {s.date.date() for s in recent_sessions if s.date}
-        
-        # Generate true/false for the last 30 days
+        recent_activity = FocusSession.query.filter(FocusSession.user_id == current_user.id, FocusSession.date >= thirty_days_ago).all()
+        active_dates = {s.date.date() for s in recent_activity if s.date}
         for i in range(30):
             d = today - timedelta(days=29 - i)
             heatmap_data.append(d in active_dates)
@@ -106,7 +102,14 @@ def home():
         db.session.rollback()
         heatmap_data = [False] * 30
 
-    return render_template('index.html', user=current_user, top_users=top_users, insights=insights, heatmap_data=heatmap_data)
+    # 3. Fetch Recent History (New Feature for Bento Grid)
+    try:
+        recent_history = FocusSession.query.filter_by(user_id=current_user.id).order_by(FocusSession.date.desc()).limit(5).all()
+    except Exception as e:
+        print("History Error:", e)
+        recent_history = []
+
+    return render_template('index.html', user=current_user, top_users=top_users, insights=insights, heatmap_data=heatmap_data, recent_history=recent_history)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -201,7 +204,6 @@ def delete_account():
         db.session.rollback()
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-# THE FIX: Heartbeat route to keep the free server awake
 @app.route('/ping')
 def ping():
     return jsonify({'status': 'awake'})
