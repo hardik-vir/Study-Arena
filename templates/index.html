@@ -177,11 +177,16 @@
         }
         updateDisplay(); 
 
+        // THE FIX: Safely parse the Python JSON without using literal template brackets in JS
         let rawInsights = {"Start a timer to see insights": 1};
         try {
             const dataElement = document.getElementById('insights-data');
-            if (dataElement && !dataElement.textContent.includes('{{')) rawInsights = JSON.parse(dataElement.textContent.trim());
-        } catch (error) { console.error(error); }
+            if (dataElement) {
+                rawInsights = JSON.parse(dataElement.textContent.trim());
+            }
+        } catch (error) { 
+            console.error("Chart data pending or invalid", error); 
+        }
 
         new Chart(document.getElementById('insightsChart').getContext('2d'), {
             type: 'doughnut',
