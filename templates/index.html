@@ -36,7 +36,6 @@
         }
         .navbar-brand { color: #f8fafc; font-size: 24px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; margin: 0; text-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
         
-        /* New Bento Grid Container */
         .dashboard-wrapper {
             max-width: 1400px; width: 100%; padding: 40px 20px; box-sizing: border-box;
             display: flex; flex-direction: column; flex-grow: 1;
@@ -63,17 +62,23 @@
         .btn { background: #38bdf8; color: #0f172a; border: none; padding: 12px 24px; border-radius: 12px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; transition: 0.2s; }
         .btn:hover { background: #0ea5e9; transform: translateY(-2px); }
         
-        .time-buttons { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
+        .time-buttons { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; justify-content: center; }
         .time-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; flex: 1; }
         .time-btn:hover { background: rgba(255,255,255,0.2); }
         
-        .category-select { 
+        .category-select, #custom-minutes { 
             width: 100%; background: rgba(0,0,0,0.3); color: #f8fafc; border: 1px solid rgba(255,255,255,0.1); 
-            padding: 12px 35px 12px 15px; border-radius: 12px; font-size: 15px; margin-bottom: 20px; outline: none; cursor: pointer;
+            padding: 12px 35px 12px 15px; border-radius: 12px; font-size: 16px !important; margin-bottom: 20px; outline: none; cursor: pointer;
             appearance: none; -webkit-appearance: none; -moz-appearance: none;
+        }
+        
+        /* Custom Chevron for Select Elements */
+        .category-select {
             background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E");
             background-repeat: no-repeat; background-position: right 15px center; background-size: 12px auto;
         }
+
+        #custom-minutes { padding: 10px 15px; margin-bottom: 0; cursor: text; }
         
         .stat-block { display: flex; justify-content: space-between; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 12px; margin-bottom: 10px; align-items: center; border: 1px solid rgba(255,255,255,0.02);}
         .current-user-rank { background: rgba(56, 189, 248, 0.1) !important; border: 1px solid rgba(56, 189, 248, 0.3); }
@@ -113,11 +118,10 @@
         }
         #toast-container.show { visibility: visible; opacity: 1; bottom: 50px; }
         
-        /* Mobile Stack */
         @media (max-width: 1024px) { 
             .bento-grid { grid-template-columns: 1fr; } 
             .timer-display svg { max-width: 250px; height: auto; }
-            .dashboard-wrapper { padding: 15px 10px; } /* Improved mobile screen usage */
+            .dashboard-wrapper { padding: 15px 10px; } 
         }
     </style>
 </head>
@@ -128,7 +132,7 @@
     <div class="dashboard-wrapper">
         <div class="bento-grid">
             
-            <!-- COLUMN 1: LEADERBOARD & INSIGHTS (Moved to the left) -->
+            <!-- COLUMN 1: LEADERBOARD & INSIGHTS -->
             <div class="bento-card">
                 <h2>Global Rankings</h2>
                 <div style="margin-bottom: 30px;">
@@ -150,7 +154,7 @@
                 </div>
 
                 <h3>Focus Breakdown</h3>
-                <div style="width: 180px; height: 180px; margin: 0 auto;">
+                <div style="width: 180px; height: 180px; margin: 0 auto; position: relative;">
                     <canvas id="insightsChart"></canvas>
                 </div>
                 <script id="insights-data" type="text/plain">
@@ -170,24 +174,27 @@
                         <option value="Work">💼 Work</option>
                         <option value="General">⚡ General</option>
                     </select>
-                    <select id="ambient-sound" class="category-select" style="margin-bottom: 0;" onchange="changeAmbient()">
-                        <option value="none">🔇 No Sound</option>
-                        <option value="rain">🌧️ Rain</option>
-                        <option value="cafe">☕ Cafe</option>
-                        <option value="waves">🌊 Waves</option>
-                    </select>
+                    
+                    <div style="position: relative; width: 100%;">
+                        <select id="ambient-sound" class="category-select" style="margin-bottom: 0;" onchange="changeAmbient()">
+                            <option value="none">🔇 No Sound</option>
+                            <option value="rain">🌧️ Rain</option>
+                            <option value="cafe">☕ Cafe</option>
+                            <option value="waves">🌊 Waves</option>
+                        </select>
+                    </div>
                     <audio id="ambient-player" loop></audio>
                 </div>
                 
-                <!-- NEW: Split timer buttons into two spacious rows -->
-                <div class="time-buttons" style="flex-direction: column; gap: 15px;">
+                <!-- Timer Presets -->
+                <div class="time-buttons">
                     <div style="display: flex; gap: 10px; width: 100%;">
                         <button class="time-btn" onclick="setTime(10)">10m</button>
                         <button class="time-btn" onclick="setTime(30)">30m</button>
                         <button class="time-btn" onclick="setTime(60)">1h</button>
                     </div>
                     <div style="display: flex; gap: 10px; width: 100%;">
-                        <input type="number" id="custom-minutes" placeholder="Custom Mins" min="1" style="background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 8px; width: 100%; outline: none; font-size: 15px;">
+                        <input type="number" id="custom-minutes" placeholder="Custom Mins" min="1">
                         <button class="time-btn" onclick="setCustomTime()" style="background: #38bdf8; color: #0f172a; font-weight: bold; min-width: 80px;">Set</button>
                     </div>
                 </div>
@@ -218,7 +225,7 @@
                 </div>
             </div>
 
-            <!-- COLUMN 3: PROFILE & HEATMAP (Moved to the right) -->
+            <!-- COLUMN 3: PROFILE & HEATMAP -->
             <div class="bento-card">
                 <h2 style="color: #10b981; margin-bottom: 25px;">{{ user.username }}</h2>
                 
@@ -300,17 +307,26 @@
 
         function copyEmail(e) {
             e.preventDefault();
-            const textArea = document.createElement("textarea");
-            textArea.value = "hardikvirani.work@zohomail.in";
-            document.body.appendChild(textArea);
-            textArea.select();
-            try {
-                document.execCommand('copy');
-                showToast("📧 Email copied to clipboard!");
-            } catch (err) {
-                console.error('Oops, unable to copy', err);
+            const emailToCopy = "hardikvirani.work@zohomail.in";
+            
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(emailToCopy).then(() => {
+                    showToast("📧 Email copied to clipboard!");
+                }).catch(err => console.error('Failed to copy', err));
+            } else {
+                const textArea = document.createElement("textarea");
+                textArea.value = emailToCopy;
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast("📧 Email copied to clipboard!");
+                } catch (err) {
+                    console.error('Fallback copy failed', err);
+                }
+                document.body.removeChild(textArea);
             }
-            document.body.removeChild(textArea);
         }
 
         const successDing = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
@@ -360,9 +376,9 @@
             } else {
                 endTime = Date.now() + (timeLeft * 1000);
                 
-                // Keeps the Render server awake during long study sessions
+                // CRITICAL FIX: POST request + no-store prevents browsers from caching the heartbeat
                 pingInterval = setInterval(() => {
-                    fetch('/ping').catch(e => console.log("Heartbeat missed"));
+                    fetch('/ping', { method: 'POST', cache: 'no-store' }).catch(e => console.log("Heartbeat missed"));
                 }, 5 * 60 * 1000);
 
                 timerId = setInterval(() => {
@@ -427,7 +443,12 @@
                     labels: Object.keys(rawInsights),
                     datasets: [{ data: Object.values(rawInsights), backgroundColor: ['#38bdf8', '#10b981', '#fbbf24', '#a855f7', '#ef4444'], borderWidth: 0, hoverOffset: 5 }]
                 },
-                options: { plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: {size: 11} } } }, cutout: '75%' }
+                options: { 
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: {size: 11} } } }, 
+                    cutout: '75%' 
+                }
             });
         }
     </script>

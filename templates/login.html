@@ -14,7 +14,7 @@
     <title>Login - Deep Work Arena</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏳</text></svg>">
     <style>
-        * { box-sizing: border-box; } /* The fix to stop the box from stretching off-screen */
+        * { box-sizing: border-box; }
         
         body { 
             background: linear-gradient(135deg, #0f172a, #1e293b); 
@@ -29,7 +29,6 @@
         .pitch-section { padding: 50px; background: rgba(0,0,0,0.2); flex: 1; min-width: 300px; }
         .login-section { padding: 50px; flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; }
         
-        /* Smooth mobile adjustments */
         @media (max-width: 768px) {
             .split-card { width: 95%; border-radius: 16px; margin: 20px 0; }
             .pitch-section, .login-section { padding: 30px 20px; min-width: 100%; }
@@ -44,7 +43,7 @@
         
         .input-field { 
             width: 100%; background: rgba(0,0,0,0.3); color: #f8fafc; border: 1px solid rgba(255,255,255,0.1); 
-            padding: 12px; border-radius: 12px; font-size: 15px; margin-bottom: 20px; outline: none; box-sizing: border-box;
+            padding: 12px; border-radius: 12px; font-size: 16px !important; margin-bottom: 20px; outline: none; box-sizing: border-box;
         }
         .btn { 
             background: #38bdf8; color: #0f172a; border: none; padding: 12px; 
