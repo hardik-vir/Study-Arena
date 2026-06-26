@@ -4,7 +4,6 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import func
 
 app = Flask(__name__)
 
@@ -21,9 +20,6 @@ if database_url.startswith("postgres://"):
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# THE FIX: Prevents Render from randomly dropping idle database connections
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"pool_pre_ping": True} 
-
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -31,67 +27,60 @@ login_manager.login_view = 'login'
 
 # --- DATABASE MODELS ---
 class User(UserMixin, db.Model):
-    __tablename__ = 'users_v4' # CLEAN SLATE V4
+    __tablename__ = 'users_v5' # Clean Slate V5
     
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
-    
-    # THE FIX: Forcing strict 0 defaults to prevent "NoneType" crashes
-    total_focus_time = db.Column(db.Integer, default=0, server_default="0", nullable=False)
-    current_streak = db.Column(db.Integer, default=0, server_default="0", nullable=False)
+    total_focus_time = db.Column(db.Integer, default=0)
+    current_streak = db.Column(db.Integer, default=0)
     last_focus_date = db.Column(db.Date, nullable=True)
 
     @property
     def rank(self):
-        # THE FIX: Safely handling any potential empty values on fresh accounts
         time = self.total_focus_time or 0
-        if time < 60:
-            return "Novice 🥉"
-        elif time < 600:
-            return "Scholar 🥈"
-        elif time < 3000:
-            return "Deep Work Master 🥇"
-        else:
-            return "Grandmaster 👑"
+        if time < 60: return "Novice 🥉"
+        elif time < 600: return "Scholar 🥈"
+        elif time < 3000: return "Deep Work Master 🥇"
+        else: return "Grandmaster 👑"
 
 class FocusSession(db.Model):
-    __tablename__ = 'sessions_v4' # CLEAN SLATE V4
+    __tablename__ = 'sessions_v5' # Clean Slate V5
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users_v4.id'), nullable=False)
-    duration_minutes = db.Column(db.Integer, nullable=False, default=0)
-    category = db.Column(db.String(50), nullable=False, default="General")
-    date = db.Column(db.DateTime, default=func.now())
+    user_id = db.Column(db.Integer, db.ForeignKey('users_v5.id'), nullable=False)
+    duration_minutes = db.Column(db.Integer, default=0)
+    category = db.Column(db.String(50), default="General")
 
 @login_manager.user_loader
 def load_user(user_id):
-    # THE FIX: Modern SQLAlchemy query format to prevent deprecation crashes
-    return db.session.get(User, int(user_id)) 
+    # THE FIX: Universally safe user loading for both old and new Flask versions
+    if hasattr(db.session, 'get'):
+        return db.session.get(User, int(user_id))
+    return User.query.get(int(user_id))
 
 # --- THE ROUTES ---
 @app.route('/')
 @login_required
 def home():
-    # Massive safety nets wrapped around database queries
+    # 1. Safely load leaderboard
     try:
         top_users = User.query.order_by(User.total_focus_time.desc()).limit(10).all()
-    except Exception as e:
-        print("Error fetching leaderboard:", e)
+    except:
         db.session.rollback()
         top_users = []
     
+    # 2. THE BLUNDER FIX: Calculating the pie chart in pure Python, NOT SQL!
+    insights = {}
     try:
-        category_data = db.session.query(
-            FocusSession.category, 
-            func.sum(FocusSession.duration_minutes)
-        ).filter(FocusSession.user_id == current_user.id).group_by(FocusSession.category).all()
-        
-        insights = {cat: int(mins) for cat, mins in category_data if mins is not None}
+        user_sessions = FocusSession.query.filter_by(user_id=current_user.id).all()
+        for s in user_sessions:
+            cat = s.category or "General"
+            mins = s.duration_minutes or 0
+            insights[cat] = insights.get(cat, 0) + mins
     except Exception as e:
-        print("Database Error:", e)
+        print("Insights Math Error:", e)
         db.session.rollback()
-        insights = {}
         
     if not insights:
         insights = {"Start a timer to see insights": 1}
@@ -111,7 +100,7 @@ def login():
             flash('Invalid username or password')
         except Exception as e:
             print("Login Error:", e)
-            db.session.rollback() 
+            db.session.rollback()
             flash('Database error... Please try again.')
     return render_template('login.html')
 
@@ -126,11 +115,10 @@ def register():
                 flash('Username already exists')
                 return redirect(url_for('register'))
             
-            # THE FIX: Explicitly telling the DB that new users start with exactly 0
             new_user = User(
                 username=username, 
                 password=generate_password_hash(password, method='pbkdf2:sha256'),
-                total_focus_time=0, 
+                total_focus_time=0,
                 current_streak=0
             )
             db.session.add(new_user)
@@ -139,7 +127,7 @@ def register():
             return redirect(url_for('home'))
         except Exception as e:
             print("Register Error:", e)
-            db.session.rollback() 
+            db.session.rollback()
             flash('Database error... Please try again.')
     return render_template('register.html')
 
@@ -174,7 +162,7 @@ def update_time():
     except Exception as e:
         print("Update Time Error:", e)
         db.session.rollback()
-        return jsonify({'status': 'error', 'message': 'Database error'}), 500
+        return jsonify({'status': 'error'})
 
 # --- DATABASE CREATION ---
 with app.app_context():
