@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import func # NEW: Required for calculating pie chart data
+from sqlalchemy import func
 
 app = Flask(__name__)
 
@@ -28,7 +28,7 @@ login_manager.login_view = 'login'
 
 # --- DATABASE MODELS ---
 class User(UserMixin, db.Model):
-    __tablename__ = 'arena_users' 
+    __tablename__ = 'arena_users_v2' # THE FIX: Forced fresh start for stability
     
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
@@ -48,12 +48,11 @@ class User(UserMixin, db.Model):
         else:
             return "Grandmaster 👑"
 
-# NEW: Table to track individual sessions for the Spotify Wrapped Insights
 class FocusSession(db.Model):
-    __tablename__ = 'focus_sessions'
+    __tablename__ = 'focus_sessions_v2' # THE FIX: Forced fresh start
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('arena_users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('arena_users_v2.id'), nullable=False)
     duration_minutes = db.Column(db.Integer, nullable=False)
     category = db.Column(db.String(50), nullable=False, default="General")
     date = db.Column(db.DateTime, default=db.func.current_timestamp())
@@ -66,20 +65,28 @@ def load_user(user_id):
 @app.route('/')
 @login_required
 def home():
-    top_users = User.query.order_by(User.total_focus_time.desc()).limit(10).all()
-    
-    # NEW: Calculate pie chart data for the current user
-    category_data = db.session.query(
-        FocusSession.category, 
-        func.sum(FocusSession.duration_minutes)
-    ).filter(FocusSession.user_id == current_user.id).group_by(FocusSession.category).all()
-    
-    # Format data for Chart.js (e.g., {'Coding': 120, 'Reading': 60})
-    insights = {cat: int(mins) for cat, mins in category_data}
-    
-    # If they haven't studied yet, give the chart empty placeholder data
-    if not insights:
-        insights = {"Start a timer to see insights": 1}
+    try:
+        # 1. Load Leaderboard
+        top_users = User.query.order_by(User.total_focus_time.desc()).limit(10).all()
+        
+        # 2. Load Chart Data Safely
+        category_data = db.session.query(
+            FocusSession.category, 
+            func.sum(FocusSession.duration_minutes)
+        ).filter(FocusSession.user_id == current_user.id).group_by(FocusSession.category).all()
+        
+        # Format for Chart.js safely protecting against None values
+        insights = {cat: int(mins) for cat, mins in category_data if mins is not None}
+        
+        if not insights:
+            insights = {"Start a timer to see insights": 1}
+
+    except Exception as e:
+        # THE FIX: If the database fails, rollback and don't crash the app!
+        db.session.rollback()
+        top_users = []
+        insights = {"Data Loading Error - Try again": 1}
+        print(f"Error loading home page: {e}")
 
     return render_template('index.html', user=current_user, top_users=top_users, insights=insights)
 
@@ -120,25 +127,31 @@ def logout():
 @app.route('/update_time', methods=['POST'])
 @login_required
 def update_time():
-    data = request.get_json()
-    minutes = data.get('minutes', 0)
-    category = data.get('category', 'General') # NEW: Grab the category
-    
-    # 1. Update total time & Streak
-    current_user.total_focus_time += minutes
-    today = date.today()
-    if current_user.last_focus_date == today - timedelta(days=1):
-        current_user.current_streak += 1
-    elif current_user.last_focus_date != today:
-        current_user.current_streak = 1
-    current_user.last_focus_date = today
-    
-    # 2. NEW: Save the specific session for the Pie Chart
-    new_session = FocusSession(user_id=current_user.id, duration_minutes=minutes, category=category)
-    db.session.add(new_session)
-    
-    db.session.commit()
-    return jsonify({'status': 'success'})
+    try:
+        data = request.get_json()
+        minutes = data.get('minutes', 0)
+        category = data.get('category', 'General') 
+        
+        current_user.total_focus_time += minutes
+        today = date.today()
+        
+        if current_user.last_focus_date == today - timedelta(days=1):
+            current_user.current_streak += 1
+        elif current_user.last_focus_date != today:
+            current_user.current_streak = 1
+        current_user.last_focus_date = today
+        
+        new_session = FocusSession(user_id=current_user.id, duration_minutes=minutes, category=category)
+        db.session.add(new_session)
+        
+        db.session.commit()
+        return jsonify({'status': 'success'})
+        
+    except Exception as e:
+        # THE FIX: Safely catch save errors
+        db.session.rollback()
+        print(f"Error saving time: {e}")
+        return jsonify({'status': 'error', 'message': 'Database error'}), 500
 
 # --- DATABASE CREATION ---
 with app.app_context():
