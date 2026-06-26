@@ -1,6 +1,6 @@
 import os
 import traceback
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -39,7 +39,7 @@ def handle_exception(e):
     </div>
     """, 500
 
-# --- DATABASE MODELS (STRICTLY V6 TO PREVENT CRASHES) ---
+# --- DATABASE MODELS ---
 class User(UserMixin, db.Model):
     __tablename__ = 'users_v6' 
     id = db.Column(db.Integer, primary_key=True)
@@ -63,6 +63,7 @@ class FocusSession(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users_v6.id'), nullable=False)
     duration_minutes = db.Column(db.Integer, default=0)
     category = db.Column(db.String(50), default="General")
+    date = db.Column(db.DateTime, default=db.func.current_timestamp())
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -75,17 +76,36 @@ def load_user(user_id):
 @login_required
 def home():
     top_users = User.query.order_by(User.total_focus_time.desc()).limit(10).all()
+    
+    # 1. Calculate Insights (Pie Chart)
     insights = {}
     user_sessions = FocusSession.query.filter_by(user_id=current_user.id).all()
     for s in user_sessions:
         cat = s.category or "General"
         mins = s.duration_minutes or 0
         insights[cat] = insights.get(cat, 0) + mins
-        
     if not insights:
         insights = {"Start a timer to see insights": 1}
 
-    return render_template('index.html', user=current_user, top_users=top_users, insights=insights)
+    # 2. Calculate Heatmap (Last 30 Days)
+    heatmap_data = []
+    try:
+        today = date.today()
+        thirty_days_ago = today - timedelta(days=30)
+        recent_sessions = FocusSession.query.filter(FocusSession.user_id == current_user.id, FocusSession.date >= thirty_days_ago).all()
+        
+        # Extract unique dates the user was active
+        active_dates = {s.date.date() for s in recent_sessions if s.date}
+        
+        # Generate true/false for the last 30 days
+        for i in range(30):
+            d = today - timedelta(days=29 - i)
+            heatmap_data.append(d in active_dates)
+    except Exception as e:
+        print("Heatmap Error:", e)
+        heatmap_data = [False] * 30
+
+    return render_template('index.html', user=current_user, top_users=top_users, insights=insights, heatmap_data=heatmap_data)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -153,20 +173,30 @@ def update_time():
     db.session.commit()
     return jsonify({'status': 'success'})
 
-# NEW: Super Safe Account Deletion Route
+@app.route('/reset_stats', methods=['POST'])
+@login_required
+def reset_stats():
+    try:
+        current_user.total_focus_time = 0
+        current_user.current_streak = 0
+        current_user.last_focus_date = None
+        FocusSession.query.filter_by(user_id=current_user.id).delete()
+        db.session.commit()
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 @app.route('/delete_account', methods=['POST'])
 @login_required
 def delete_account():
     try:
-        # First, safely delete all related focus sessions to prevent database locks
         FocusSession.query.filter_by(user_id=current_user.id).delete()
-        # Second, delete the user entirely
         db.session.delete(current_user)
         db.session.commit()
         logout_user()
         return jsonify({'status': 'success'})
     except Exception as e:
-        print("Delete Account Error:", e)
         db.session.rollback()
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
