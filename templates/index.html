@@ -63,7 +63,7 @@
         .btn:hover { background: #0ea5e9; transform: translateY(-2px); }
         
         .time-buttons { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; justify-content: center; }
-        .time-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; flex: 1; }
+        .time-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.05); padding: 12px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; flex: 1; font-size: 16px; }
         .time-btn:hover { background: rgba(255,255,255,0.2); }
         
         .category-select, #custom-minutes { 
@@ -78,8 +78,58 @@
             background-repeat: no-repeat; background-position: right 15px center; background-size: 12px auto;
         }
 
-        #custom-minutes { padding: 10px 15px; margin-bottom: 0; cursor: text; }
+        #custom-minutes { padding: 12px 15px; margin-bottom: 0; cursor: text; }
         
+        /* Aesthetic CSS Tooltips */
+        .tooltip-wrapper { position: relative; width: 100%; }
+        .tooltip-wrapper::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(0);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(4px);
+            color: #38bdf8;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            z-index: 100;
+        }
+        .tooltip-wrapper::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(0);
+            border-width: 6px;
+            border-style: solid;
+            border-color: rgba(56, 189, 248, 0.3) transparent transparent transparent;
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+        }
+        .tooltip-wrapper:hover::after {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-10px);
+        }
+        .tooltip-wrapper:hover::before {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-4px);
+        }
+
         .stat-block { display: flex; justify-content: space-between; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 12px; margin-bottom: 10px; align-items: center; border: 1px solid rgba(255,255,255,0.02);}
         .current-user-rank { background: rgba(56, 189, 248, 0.1) !important; border: 1px solid rgba(56, 189, 248, 0.3); }
 
@@ -167,15 +217,17 @@
                 <h2>Focus Arena</h2>
                 
                 <div style="display: flex; gap: 15px; margin-bottom: 20px;">
-                    <select id="task-category" class="category-select" style="margin-bottom: 0;">
-                        <option value="Coding">💻 Coding</option>
-                        <option value="Studying">📚 Studying</option>
-                        <option value="Reading">📖 Reading</option>
-                        <option value="Work">💼 Work</option>
-                        <option value="General">⚡ General</option>
-                    </select>
+                    <div class="tooltip-wrapper" data-tooltip="Select your focus realm 🎯">
+                        <select id="task-category" class="category-select" style="margin-bottom: 0;">
+                            <option value="Coding">💻 Coding</option>
+                            <option value="Studying">📚 Studying</option>
+                            <option value="Reading">📖 Reading</option>
+                            <option value="Work">💼 Work</option>
+                            <option value="General">⚡ General</option>
+                        </select>
+                    </div>
                     
-                    <div style="position: relative; width: 100%;">
+                    <div class="tooltip-wrapper" data-tooltip="Choose ambient soundscape 🎧">
                         <select id="ambient-sound" class="category-select" style="margin-bottom: 0;" onchange="changeAmbient()">
                             <option value="none">🔇 No Sound</option>
                             <option value="rain">🌧️ Rain</option>
@@ -195,7 +247,7 @@
                     </div>
                     <div style="display: flex; gap: 10px; width: 100%;">
                         <input type="number" id="custom-minutes" placeholder="Custom Mins" min="1">
-                        <button class="time-btn" onclick="setCustomTime()" style="background: #38bdf8; color: #0f172a; font-weight: bold; min-width: 80px;">Set</button>
+                        <button class="time-btn" onclick="setCustomTime()" style="background: #38bdf8; color: #0f172a; font-weight: bold; flex: 0.5;">Set</button>
                     </div>
                 </div>
                 
@@ -376,7 +428,7 @@
             } else {
                 endTime = Date.now() + (timeLeft * 1000);
                 
-                // CRITICAL FIX: POST request + no-store prevents browsers from caching the heartbeat
+                // POST request + no-store prevents browsers from caching the heartbeat
                 pingInterval = setInterval(() => {
                     fetch('/ping', { method: 'POST', cache: 'no-store' }).catch(e => console.log("Heartbeat missed"));
                 }, 5 * 60 * 1000);
