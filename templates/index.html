@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- LinkedIn Open Graph Tags -->
     <meta property="og:title" content="Deep Work Arena | Level up your focus" />
     <meta property="og:description" content="Track your deep work. Climb the global leaderboard. Visualize your productivity." />
     <meta property="og:image" content="https://i.postimg.cc/wxG2qk1d/Screenshot-(213).png" />
@@ -16,25 +15,71 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
+        /* BASE THEME (Default Arena) */
+        :root {
+            --bg-grad-1: #0f172a; --bg-grad-2: #1e293b;
+            --primary: #38bdf8; --primary-hover: #0ea5e9;
+            --primary-glow: rgba(56, 189, 248, 0.3); --primary-glow-strong: rgba(56, 189, 248, 0.6);
+            --secondary: #10b981; --secondary-glow: rgba(16, 185, 129, 0.2); --secondary-bg: rgba(16, 185, 129, 0.05);
+            --text-main: #f8fafc; --text-muted: #94a3b8;
+            --card-bg: rgba(30, 41, 59, 0.6);
+            --border-light: rgba(255,255,255,0.1); --border-faint: rgba(255,255,255,0.05); --border-faintest: rgba(255,255,255,0.02);
+            --input-bg: rgba(0,0,0,0.3);
+            --danger: #ef4444; --danger-glow: rgba(239, 68, 68, 0.3); --danger-bg: rgba(239, 68, 68, 0.1);
+            --chart-1: #38bdf8; --chart-2: #10b981; --chart-3: #fbbf24; --chart-4: #a855f7; --chart-5: #ef4444;
+        }
+
+        /* THEME 2: Library (Dark Academia) */
+        body.theme-library {
+            --bg-grad-1: #29211c; --bg-grad-2: #1a1412;
+            --primary: #fbbf24; --primary-hover: #f59e0b;
+            --primary-glow: rgba(251, 191, 36, 0.3); --primary-glow-strong: rgba(251, 191, 36, 0.6);
+            --secondary: #d97706; --secondary-glow: rgba(217, 119, 6, 0.2); --secondary-bg: rgba(217, 119, 6, 0.05);
+            --text-main: #fef3c7; --text-muted: #d4d4d8;
+            --card-bg: rgba(41, 33, 28, 0.7);
+            --border-light: rgba(251, 191, 36, 0.15); --border-faint: rgba(251, 191, 36, 0.05);
+            --chart-1: #fbbf24; --chart-2: #d97706; --chart-3: #b45309; --chart-4: #78350f; --chart-5: #fcd34d;
+        }
+
+        /* THEME 3: Nightcity (Cyberpunk) */
+        body.theme-nightcity {
+            --bg-grad-1: #09090b; --bg-grad-2: #2a0416;
+            --primary: #f472b6; --primary-hover: #ec4899;
+            --primary-glow: rgba(244, 114, 182, 0.3); --primary-glow-strong: rgba(244, 114, 182, 0.6);
+            --secondary: #22d3ee; --secondary-glow: rgba(34, 211, 238, 0.2); --secondary-bg: rgba(34, 211, 238, 0.05);
+            --text-main: #fdf2f8; --text-muted: #a1a1aa;
+            --card-bg: rgba(9, 9, 11, 0.8);
+            --border-light: rgba(244, 114, 182, 0.2);
+            --chart-1: #f472b6; --chart-2: #22d3ee; --chart-3: #c084fc; --chart-4: #e879f9; --chart-5: #38bdf8;
+        }
+
+        /* THEME 4: Zen Garden (Minimalist) */
+        body.theme-zengarden {
+            --bg-grad-1: #151e18; --bg-grad-2: #0b0f0c;
+            --primary: #a7f3d0; --primary-hover: #6ee7b7;
+            --primary-glow: rgba(167, 243, 208, 0.3); --primary-glow-strong: rgba(167, 243, 208, 0.6);
+            --secondary: #fbbf24; --secondary-glow: rgba(251, 191, 36, 0.2); --secondary-bg: rgba(251, 191, 36, 0.05);
+            --text-main: #ecfdf5; --text-muted: #a7f3d0;
+            --card-bg: rgba(21, 30, 24, 0.7);
+            --border-light: rgba(167, 243, 208, 0.15);
+            --chart-1: #a7f3d0; --chart-2: #fbbf24; --chart-3: #34d399; --chart-4: #fcd34d; --chart-5: #10b981;
+        }
+
         body { 
-            background-color: #0f172a; 
-            background: linear-gradient(135deg, #0f172a, #1e293b); 
-            transition: background 1s ease; 
-            color: #f8fafc; font-family: sans-serif; display: flex; 
+            background: linear-gradient(135deg, var(--bg-grad-1), var(--bg-grad-2)); 
+            background-attachment: fixed;
+            transition: background 0.8s ease; 
+            color: var(--text-main); font-family: sans-serif; display: flex; 
             flex-direction: column; align-items: center; margin: 0; min-height: 100vh;
         }
         
-        body.rain { background: linear-gradient(135deg, #0f172a, #1e3a8a); }
-        body.cafe { background: linear-gradient(135deg, #0f172a, #451a03); }
-        body.waves { background: linear-gradient(135deg, #0f172a, #115e59); }
-
         .navbar { 
-            width: 100%; background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(10px); 
+            width: 100%; background: var(--card-bg); backdrop-filter: blur(10px); 
             padding: 15px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.3); 
-            text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05);
+            text-align: center; border-bottom: 1px solid var(--border-light);
             position: sticky; top: 0; z-index: 1000;
         }
-        .navbar-brand { color: #f8fafc; font-size: 24px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; margin: 0; text-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
+        .navbar-brand { color: var(--text-main); font-size: 24px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; margin: 0; text-shadow: 0 0 10px var(--primary-glow-strong); }
         
         .dashboard-wrapper {
             max-width: 1400px; width: 100%; padding: 40px 20px; box-sizing: border-box;
@@ -49,30 +94,32 @@
         }
 
         .bento-card { 
-            background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(15px); 
-            border: 1px solid rgba(255,255,255,0.1); padding: 30px; 
-            border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); 
+            background: var(--card-bg); backdrop-filter: blur(15px); 
+            border: 1px solid var(--border-light); padding: 30px; 
+            border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            transition: all 0.5s ease; 
         }
 
-        h2 { color: #38bdf8; margin-top: 0; font-weight: 800; text-align: center; font-size: 20px; }
-        h3 { color: #94a3b8; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; margin-top: 0; }
+        h2 { color: var(--primary); margin-top: 0; font-weight: 800; text-align: center; font-size: 20px; transition: color 0.5s ease; }
+        h3 { color: var(--text-muted); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; margin-top: 0; transition: color 0.5s ease; }
 
         .timer-display { text-align: center; margin: 20px 0; position: relative; display: flex; justify-content: center;}
         .time-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; font-weight: bold; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-        .btn { background: #38bdf8; color: #0f172a; border: none; padding: 12px 24px; border-radius: 12px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; transition: 0.2s; }
-        .btn:hover { background: #0ea5e9; transform: translateY(-2px); }
+        
+        .btn { background: var(--primary); color: #0f172a; border: none; padding: 12px 24px; border-radius: 12px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; transition: 0.2s; }
+        .btn:hover { background: var(--primary-hover); transform: translateY(-2px); }
         
         .time-buttons { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; justify-content: center; }
-        .time-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.05); padding: 12px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; flex: 1; font-size: 16px; }
-        .time-btn:hover { background: rgba(255,255,255,0.2); }
+        .time-btn { background: var(--border-light); color: var(--text-main); border: 1px solid var(--border-faint); padding: 12px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; flex: 1; font-size: 16px; }
+        .time-btn:hover { background: var(--primary-glow); border-color: var(--primary); }
         
         .category-select, #custom-minutes { 
-            width: 100%; background: rgba(0,0,0,0.3); color: #f8fafc; border: 1px solid rgba(255,255,255,0.1); 
+            width: 100%; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-light); 
             padding: 12px 35px 12px 15px; border-radius: 12px; font-size: 16px !important; margin-bottom: 20px; outline: none; cursor: pointer;
-            appearance: none; -webkit-appearance: none; -moz-appearance: none;
+            appearance: none; -webkit-appearance: none; -moz-appearance: none; transition: all 0.3s ease;
         }
+        .category-select:focus, #custom-minutes:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
         
-        /* Custom Chevron for Select Elements */
         .category-select {
             background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E");
             background-repeat: no-repeat; background-position: right 15px center; background-size: 12px auto;
@@ -80,88 +127,53 @@
 
         #custom-minutes { padding: 12px 15px; margin-bottom: 0; cursor: text; }
         
-        /* Aesthetic CSS Tooltips */
         .tooltip-wrapper { position: relative; width: 100%; }
         .tooltip-wrapper::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%) translateY(0);
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(4px);
-            color: #38bdf8;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: bold;
-            white-space: nowrap;
-            pointer-events: none;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            z-index: 100;
+            content: attr(data-tooltip); position: absolute; bottom: 100%; left: 50%;
+            transform: translateX(-50%) translateY(0); background: var(--bg-grad-1); backdrop-filter: blur(4px);
+            color: var(--primary); padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: bold;
+            white-space: nowrap; pointer-events: none; opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--primary-glow); box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 100;
         }
         .tooltip-wrapper::before {
-            content: '';
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%) translateY(0);
-            border-width: 6px;
-            border-style: solid;
-            border-color: rgba(56, 189, 248, 0.3) transparent transparent transparent;
-            pointer-events: none;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 100;
+            content: ''; position: absolute; bottom: 100%; left: 50%;
+            transform: translateX(-50%) translateY(0); border-width: 6px; border-style: solid;
+            border-color: var(--primary-glow) transparent transparent transparent; pointer-events: none;
+            opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100;
         }
-        .tooltip-wrapper:hover::after {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(-50%) translateY(-10px);
-        }
-        .tooltip-wrapper:hover::before {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(-50%) translateY(-4px);
-        }
+        .tooltip-wrapper:hover::after { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(-10px); }
+        .tooltip-wrapper:hover::before { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(-4px); }
 
-        .stat-block { display: flex; justify-content: space-between; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 12px; margin-bottom: 10px; align-items: center; border: 1px solid rgba(255,255,255,0.02);}
-        .current-user-rank { background: rgba(56, 189, 248, 0.1) !important; border: 1px solid rgba(56, 189, 248, 0.3); }
+        .stat-block { display: flex; justify-content: space-between; padding: 15px; background: var(--input-bg); border-radius: 12px; margin-bottom: 10px; align-items: center; border: 1px solid var(--border-faintest);}
+        .current-user-rank { background: var(--primary-glow) !important; border: 1px solid var(--primary); }
 
         .heatmap { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; margin-bottom: 25px; }
-        .day-cell { width: 100%; aspect-ratio: 1; border-radius: 4px; background: rgba(255,255,255,0.05); transition: 0.3s; }
-        .day-active { background: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.6); }
+        .day-cell { width: 100%; aspect-ratio: 1; border-radius: 4px; background: var(--border-faint); transition: 0.3s; }
+        .day-active { background: var(--primary); box-shadow: 0 0 10px var(--primary-glow-strong); }
 
-        /* History Feed Styling */
         .history-feed { max-height: 250px; overflow-y: auto; padding-right: 5px; }
         .history-feed::-webkit-scrollbar { width: 6px; }
-        .history-feed::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 10px; }
-        .history-feed::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
-        .history-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px;}
+        .history-feed::-webkit-scrollbar-track { background: var(--input-bg); border-radius: 10px; }
+        .history-feed::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 10px; }
+        .history-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border-faint); font-size: 14px;}
         .history-item:last-child { border-bottom: none; }
 
         .danger-zone { display: flex; gap: 10px; margin-top: 20px; }
-        .danger-btn { flex: 1; background: transparent; color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; font-size: 12px; cursor: pointer; transition: 0.2s; }
-        .danger-btn:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
+        .danger-btn { flex: 1; background: transparent; color: var(--text-muted); border: 1px solid var(--border-light); padding: 8px; border-radius: 8px; font-size: 12px; cursor: pointer; transition: 0.2s; }
+        .danger-btn:hover { background: var(--danger-bg); color: var(--danger); border-color: var(--danger-glow); }
 
-        svg.timer-svg { transform: rotate(-90deg); filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.3)); }
-        circle { transition: stroke-dashoffset 1s linear; }
+        svg.timer-svg { transform: rotate(-90deg); filter: drop-shadow(0 0 10px var(--primary-glow)); }
+        circle { transition: stroke-dashoffset 1s linear, stroke 0.5s ease; }
         
         .app-footer {
             margin-top: auto; padding: 30px 0; 
-            text-align: center; font-size: 14px; color: #94a3b8; display: flex; flex-direction: column; align-items: center; gap: 12px;
+            text-align: center; font-size: 14px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 12px;
         }
         .social-links { display: flex; gap: 20px; }
-        .social-links a { color: #94a3b8; text-decoration: none; transition: 0.2s; display: flex; align-items: center; gap: 6px; cursor: pointer; }
-        .social-links a:hover { color: #38bdf8; }
+        .social-links a { color: var(--text-muted); text-decoration: none; transition: 0.2s; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+        .social-links a:hover { color: var(--primary); }
         .social-links svg { transform: none; filter: none; width: 18px; height: 18px; fill: currentColor; } 
 
-        /* Contact Modal CSS */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px);
@@ -170,28 +182,28 @@
         }
         .modal-overlay.show { opacity: 1; visibility: visible; }
         .modal-content {
-            background: rgba(30, 41, 59, 0.95); border: 1px solid rgba(56, 189, 248, 0.3);
+            background: var(--card-bg); border: 1px solid var(--primary-glow);
             padding: 30px; border-radius: 20px; text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 20px rgba(56, 189, 248, 0.1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 20px var(--primary-glow);
             max-width: 400px; width: 90%; transform: translateY(20px); transition: 0.3s;
         }
         .modal-overlay.show .modal-content { transform: translateY(0); }
         .email-box {
-            background: rgba(0,0,0,0.3); padding: 12px 15px; border-radius: 12px;
+            background: var(--input-bg); padding: 12px 15px; border-radius: 12px;
             display: flex; justify-content: space-between; align-items: center;
-            border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;
+            border: 1px solid var(--border-faint); margin-bottom: 20px;
         }
-        .email-text { color: #f8fafc; font-weight: bold; font-family: monospace; font-size: 14px;}
+        .email-text { color: var(--text-main); font-weight: bold; font-family: monospace; font-size: 14px;}
         .copy-btn {
-            background: #38bdf8; color: #0f172a; border: none; padding: 8px 16px;
+            background: var(--primary); color: #0f172a; border: none; padding: 8px 16px;
             border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.2s;
         }
-        .copy-btn:hover { background: #0ea5e9; }
-        .close-modal { background: transparent; color: #94a3b8; border: none; cursor: pointer; font-size: 14px; transition: 0.2s; text-decoration: underline; }
-        .close-modal:hover { color: #ef4444; }
+        .copy-btn:hover { background: var(--primary-hover); }
+        .close-modal { background: transparent; color: var(--text-muted); border: none; cursor: pointer; font-size: 14px; transition: 0.2s; text-decoration: underline; }
+        .close-modal:hover { color: var(--danger); }
 
         #toast-container {
-            visibility: hidden; min-width: 250px; background-color: #10b981; color: #fff; text-align: center; border-radius: 12px;
+            visibility: hidden; min-width: 250px; background-color: var(--secondary); color: #fff; text-align: center; border-radius: 12px;
             padding: 16px; position: fixed; z-index: 1001; right: 30px; bottom: 30px; font-size: 16px; font-weight: bold;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.5s, bottom 0.5s;
         }
@@ -221,14 +233,14 @@
                             {% if loop.index == 1 %}👑
                             {% elif loop.index == 2 %}🥈
                             {% elif loop.index == 3 %}🥉
-                            {% else %}<span style="color: #64748b; font-weight: bold; margin-right: 8px;">#{{ loop.index }}</span>
+                            {% else %}<span style="color: var(--text-muted); font-weight: bold; margin-right: 8px;">#{{ loop.index }}</span>
                             {% endif %}
                             {{ player.username }}
                         </span>
                         <strong style="font-size: 14px;">{{ (player.total_focus_time or 0) // 60 }}h {{ (player.total_focus_time or 0) % 60 }}m</strong>
                     </div>
                     {% else %}
-                    <p style="color: #94a3b8; text-align: center;">No players yet.</p>
+                    <p style="color: var(--text-muted); text-align: center;">No players yet.</p>
                     {% endfor %}
                 </div>
 
@@ -242,7 +254,7 @@
             </div>
 
             <!-- COLUMN 2: THE ARENA TIMER -->
-            <div class="bento-card" style="border: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 0 40px rgba(56, 189, 248, 0.1);">
+            <div class="bento-card" style="border: 1px solid var(--primary-glow); box-shadow: 0 0 40px var(--primary-glow-strong);">
                 <h2>Focus Arena</h2>
                 
                 <div style="display: flex; gap: 15px; margin-bottom: 20px;">
@@ -256,15 +268,14 @@
                         </select>
                     </div>
                     
-                    <div class="tooltip-wrapper" data-tooltip="Choose ambient soundscape 🎧">
-                        <select id="ambient-sound" class="category-select" style="margin-bottom: 0;" onchange="changeAmbient()">
-                            <option value="none">🔇 No Sound</option>
-                            <option value="rain">🌧️ Rain</option>
-                            <option value="cafe">☕ Cafe</option>
-                            <option value="waves">🌊 Waves</option>
+                    <div class="tooltip-wrapper" data-tooltip="Customize your aesthetic ✨">
+                        <select id="theme-select" class="category-select" style="margin-bottom: 0;" onchange="changeTheme()">
+                            <option value="theme-default">🌌 Default (Arena)</option>
+                            <option value="theme-library">🕰️ Library</option>
+                            <option value="theme-nightcity">🌆 Nightcity</option>
+                            <option value="theme-zengarden">🎋 Zen Garden</option>
                         </select>
                     </div>
-                    <audio id="ambient-player" loop></audio>
                 </div>
                 
                 <!-- Timer Presets -->
@@ -276,51 +287,51 @@
                     </div>
                     <div style="display: flex; gap: 10px; width: 100%;">
                         <input type="number" id="custom-minutes" placeholder="Custom Mins" min="1">
-                        <button class="time-btn" onclick="setCustomTime()" style="background: #38bdf8; color: #0f172a; font-weight: bold; flex: 0.5;">Set</button>
+                        <button class="time-btn" onclick="setCustomTime()" style="background: var(--primary); color: #0f172a; font-weight: bold; flex: 0.5;">Set</button>
                     </div>
                 </div>
                 
                 <div class="timer-display">
                     <svg width="240" height="240" class="timer-svg">
-                        <circle cx="120" cy="120" r="110" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="12"></circle>
-                        <circle id="progress-ring" cx="120" cy="120" r="110" fill="none" stroke="#38bdf8" stroke-width="12" stroke-dasharray="691" stroke-dashoffset="0"></circle>
+                        <circle cx="120" cy="120" r="110" fill="none" stroke="var(--border-faint)" stroke-width="12"></circle>
+                        <circle id="progress-ring" cx="120" cy="120" r="110" fill="none" stroke="var(--primary)" stroke-width="12" stroke-dasharray="691" stroke-dashoffset="0"></circle>
                     </svg>
                     <div class="time-text" id="time-left">25:00</div>
                 </div>
 
                 <div style="display: flex; gap: 10px;">
                     <button class="btn" id="start-btn" onclick="toggleTimer()" style="font-size: 18px; padding: 15px;">Start Focus</button>
-                    <button class="btn" onclick="resetTimer()" style="background: rgba(255,255,255,0.1); color: #f8fafc; border: 1px solid rgba(255,255,255,0.05); flex: 0.4;">Reset</button>
+                    <button class="btn" onclick="resetTimer()" style="background: var(--border-light); color: var(--text-main); border: 1px solid var(--border-faint); flex: 0.4;">Reset</button>
                 </div>
 
-                <h3 style="margin-top: 30px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">Recent Sessions</h3>
+                <h3 style="margin-top: 30px; text-align: center; border-top: 1px solid var(--border-light); padding-top: 20px;">Recent Sessions</h3>
                 <div class="history-feed">
                     {% for session in recent_history %}
                     <div class="history-item">
-                        <span style="color: #e2e8f0;">{{ session.category }}</span>
-                        <span style="color: #38bdf8; font-weight: bold;">+{{ session.duration_minutes }} min</span>
+                        <span style="color: var(--text-main);">{{ session.category }}</span>
+                        <span style="color: var(--primary); font-weight: bold;">+{{ session.duration_minutes }} min</span>
                     </div>
                     {% else %}
-                    <p style="text-align: center; color: #64748b; font-size: 14px;">No recent sessions. Start the timer!</p>
+                    <p style="text-align: center; color: var(--text-muted); font-size: 14px;">No recent sessions. Start the timer!</p>
                     {% endfor %}
                 </div>
             </div>
 
             <!-- COLUMN 3: PROFILE & HEATMAP -->
             <div class="bento-card">
-                <h2 style="color: #10b981; margin-bottom: 25px;">{{ user.username }}</h2>
+                <h2 style="color: var(--secondary); margin-bottom: 25px;">{{ user.username }}</h2>
                 
-                <div class="stat-block" style="text-align: center; display: block; border: 1px solid rgba(16, 185, 129, 0.2); background: rgba(16, 185, 129, 0.05);">
-                    <span style="color: #94a3b8; font-size: 14px; display: block; margin-bottom: 5px;">Current Rank</span>
-                    <strong style="color: #10b981; font-size: 24px; text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);">{{ user.rank }}</strong>
+                <div class="stat-block" style="text-align: center; display: block; border: 1px solid var(--secondary-glow); background: var(--secondary-bg);">
+                    <span style="color: var(--text-muted); font-size: 14px; display: block; margin-bottom: 5px;">Current Rank</span>
+                    <strong style="color: var(--secondary); font-size: 24px; text-shadow: 0 0 10px var(--secondary-glow);">{{ user.rank }}</strong>
                 </div>
                 
                 <div class="stat-block">
-                    <span style="color: #94a3b8;">Total Time:</span>
+                    <span style="color: var(--text-muted);">Total Time:</span>
                     <strong>{{ (user.total_focus_time or 0) // 60 }}h {{ (user.total_focus_time or 0) % 60 }}m</strong>
                 </div>
                 <div class="stat-block">
-                    <span style="color: #94a3b8;">Current Streak:</span>
+                    <span style="color: var(--text-muted);">Current Streak:</span>
                     <strong>{{ user.current_streak or 0 }} Days 🔥</strong>
                 </div>
                 
@@ -331,7 +342,7 @@
                     {% endfor %}
                 </div>
 
-                <a href="{{ url_for('logout') }}" style="text-decoration: none;"><button class="btn" style="background: rgba(255,255,255,0.1); color: #f8fafc;">Logout</button></a>
+                <a href="{{ url_for('logout') }}" style="text-decoration: none;"><button class="btn" style="background: var(--border-light); color: var(--text-main);">Logout</button></a>
                 
                 <div class="danger-zone">
                     <button class="danger-btn" onclick="resetStats()">Reset Stats</button>
@@ -360,7 +371,7 @@
     <div id="contact-modal" class="modal-overlay" onclick="if(event.target===this) closeContactModal()">
         <div class="modal-content">
             <h2 style="margin-bottom: 10px;">Let's Connect</h2>
-            <p style="color: #94a3b8; font-size: 14px; margin-bottom: 25px;">Feel free to reach out for feedback or collaboration!</p>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px;">Feel free to reach out for feedback or collaboration!</p>
             <div class="email-box">
                 <span class="email-text">hardikvirani.work@zohomail.in</span>
                 <button onclick="copyFromModal()" class="copy-btn">Copy</button>
@@ -370,26 +381,28 @@
     </div>
 
     <script>
-        const ambientPlayer = document.getElementById('ambient-player');
-        const ambientTracks = {
-            'rain': 'https://assets.mixkit.co/active_storage/sfx/2515/2515-preview.mp3',
-            'cafe': 'https://assets.mixkit.co/active_storage/sfx/2658/2658-preview.mp3',
-            'waves': 'https://assets.mixkit.co/active_storage/sfx/2504/2504-preview.mp3'
-        };
+        // === THEME ENGINE ===
+        let insightsChartInstance = null;
 
-        function changeAmbient() {
-            const choice = document.getElementById('ambient-sound').value;
+        function changeTheme() {
+            const choice = document.getElementById('theme-select').value;
             document.body.className = choice; 
+            localStorage.setItem('arena-theme', choice);
             
-            if (choice === 'none' || choice === '') {
-                ambientPlayer.pause();
-            } else {
-                ambientPlayer.src = ambientTracks[choice];
-                ambientPlayer.volume = 0.4;
-                ambientPlayer.play().catch(e => console.log("Sound autoplay blocked"));
-            }
+            // Re-render chart to pick up new CSS variables
+            renderChart();
         }
 
+        // Load saved theme on boot
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('arena-theme') || 'theme-default';
+            document.body.className = savedTheme;
+            document.getElementById('theme-select').value = savedTheme;
+            renderChart();
+        });
+
+
+        // === UI UTILS ===
         let toastTimeout;
         function showToast(message) {
             const toast = document.getElementById("toast-container");
@@ -399,18 +412,11 @@
             toastTimeout = setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        function openContactModal(e) {
-            e.preventDefault();
-            document.getElementById('contact-modal').classList.add('show');
-        }
-
-        function closeContactModal() {
-            document.getElementById('contact-modal').classList.remove('show');
-        }
+        function openContactModal(e) { e.preventDefault(); document.getElementById('contact-modal').classList.add('show'); }
+        function closeContactModal() { document.getElementById('contact-modal').classList.remove('show'); }
 
         function copyFromModal() {
             const emailToCopy = "hardikvirani.work@zohomail.in";
-            
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(emailToCopy).then(() => {
                     showToast("📧 Email copied to clipboard!");
@@ -420,15 +426,12 @@
                 const textArea = document.createElement("textarea");
                 textArea.value = emailToCopy;
                 document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
+                textArea.focus(); textArea.select();
                 try {
                     document.execCommand('copy');
                     showToast("📧 Email copied to clipboard!");
                     closeContactModal();
-                } catch (err) {
-                    console.error('Fallback copy failed', err);
-                }
+                } catch (err) { console.error('Fallback copy failed', err); }
                 document.body.removeChild(textArea);
             }
         }
@@ -436,6 +439,7 @@
         const successDing = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
         successDing.volume = 0.6; 
 
+        // === TIMER ENGINE ===
         let duration = 25 * 60, timeLeft = duration, timerId = null, isRunning = false, endTime = null, pingInterval = null; 
         const timeText = document.getElementById('time-left'), progressRing = document.getElementById('progress-ring');
         const startBtn = document.getElementById('start-btn'); 
@@ -447,9 +451,10 @@
             let progress = timeLeft / duration;
             progressRing.style.strokeDashoffset = circumference - (progress * circumference);
             
-            if (progress > 0.5) progressRing.style.stroke = '#38bdf8'; 
-            else if (progress > 0.2) progressRing.style.stroke = '#fbbf24'; 
-            else progressRing.style.stroke = '#ef4444'; 
+            // Dynamic color based on progress but tied to Theme CSS Variables
+            if (progress > 0.5) progressRing.style.stroke = 'var(--primary)'; 
+            else if (progress > 0.2) progressRing.style.stroke = 'var(--chart-3)'; 
+            else progressRing.style.stroke = 'var(--danger)'; 
         }
 
         function setTime(minutes) {
@@ -479,8 +484,6 @@
                 startBtn.innerText = 'Start Focus'; isRunning = false;
             } else {
                 endTime = Date.now() + (timeLeft * 1000);
-                
-                // POST request + no-store prevents browsers from caching the heartbeat
                 pingInterval = setInterval(() => {
                     fetch('/ping', { method: 'POST', cache: 'no-store' }).catch(e => console.log("Heartbeat missed"));
                 }, 5 * 60 * 1000);
@@ -510,6 +513,7 @@
         }
         updateDisplay(); 
 
+        // === ACCOUNT DANGER ZONE ===
         function resetStats() {
             if(confirm("Are you sure? This will permanently wipe your focus history and streak!")) {
                 fetch('/reset_stats', { method: 'POST' })
@@ -529,31 +533,46 @@
             }
         }
 
-        // Chart.js Setup
-        let rawInsights = {"Start a timer to see insights": 1};
-        try {
-            const dataElement = document.getElementById('insights-data');
-            if (dataElement && !dataElement.textContent.includes('{' + '{')) {
-                rawInsights = JSON.parse(dataElement.textContent.trim());
-            }
-        } catch (error) { 
-            console.error("Chart data pending", error); 
-        }
-
-        if (typeof Chart !== 'undefined') {
-            new Chart(document.getElementById('insightsChart').getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(rawInsights),
-                    datasets: [{ data: Object.values(rawInsights), backgroundColor: ['#38bdf8', '#10b981', '#fbbf24', '#a855f7', '#ef4444'], borderWidth: 0, hoverOffset: 5 }]
-                },
-                options: { 
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: {size: 11} } } }, 
-                    cutout: '75%' 
+        // === CHART RENDERING ENGINE ===
+        function renderChart() {
+            let rawInsights = {"Start a timer to see insights": 1};
+            try {
+                const dataElement = document.getElementById('insights-data');
+                if (dataElement && !dataElement.textContent.includes('{' + '{')) {
+                    rawInsights = JSON.parse(dataElement.textContent.trim());
                 }
-            });
+            } catch (error) { 
+                console.error("Chart data pending", error); 
+            }
+
+            if (typeof Chart !== 'undefined') {
+                if (insightsChartInstance) { insightsChartInstance.destroy(); }
+                
+                // Fetch live colors from current CSS variables
+                const style = getComputedStyle(document.body);
+                const colors = [
+                    style.getPropertyValue('--chart-1').trim() || '#38bdf8',
+                    style.getPropertyValue('--chart-2').trim() || '#10b981',
+                    style.getPropertyValue('--chart-3').trim() || '#fbbf24',
+                    style.getPropertyValue('--chart-4').trim() || '#a855f7',
+                    style.getPropertyValue('--chart-5').trim() || '#ef4444'
+                ];
+                const textColor = style.getPropertyValue('--text-muted').trim() || '#94a3b8';
+
+                insightsChartInstance = new Chart(document.getElementById('insightsChart').getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(rawInsights),
+                        datasets: [{ data: Object.values(rawInsights), backgroundColor: colors, borderWidth: 0, hoverOffset: 5 }]
+                    },
+                    options: { 
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom', labels: { color: textColor, font: {size: 11} } } }, 
+                        cutout: '75%' 
+                    }
+                });
+            }
         }
     </script>
 </body>

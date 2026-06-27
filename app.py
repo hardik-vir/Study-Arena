@@ -104,7 +104,7 @@ def home():
 
     # 3. Fetch Recent History (New Feature for Bento Grid)
     try:
-        recent_history = FocusSession.query.filter_by(user_id=current_user.id).order_by(FocusSession.date.desc()).limit(5).all()
+        recent_history = FocusSession.query.filter_by(user_id=current_user.id).order_by(FocusSession.date.desc()).limit(3).all()
     except Exception as e:
         print("History Error:", e)
         recent_history = []
@@ -204,7 +204,7 @@ def delete_account():
         db.session.rollback()
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-@app.route('/ping')
+@app.route('/ping', methods=['GET', 'POST'])
 def ping():
     return jsonify({'status': 'awake'})
 
