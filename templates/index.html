@@ -161,6 +161,35 @@
         .social-links a:hover { color: #38bdf8; }
         .social-links svg { transform: none; filter: none; width: 18px; height: 18px; fill: currentColor; } 
 
+        /* Contact Modal CSS */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px);
+            z-index: 2000; display: flex; justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden; transition: 0.3s;
+        }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal-content {
+            background: rgba(30, 41, 59, 0.95); border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 30px; border-radius: 20px; text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 20px rgba(56, 189, 248, 0.1);
+            max-width: 400px; width: 90%; transform: translateY(20px); transition: 0.3s;
+        }
+        .modal-overlay.show .modal-content { transform: translateY(0); }
+        .email-box {
+            background: rgba(0,0,0,0.3); padding: 12px 15px; border-radius: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;
+        }
+        .email-text { color: #f8fafc; font-weight: bold; font-family: monospace; font-size: 14px;}
+        .copy-btn {
+            background: #38bdf8; color: #0f172a; border: none; padding: 8px 16px;
+            border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.2s;
+        }
+        .copy-btn:hover { background: #0ea5e9; }
+        .close-modal { background: transparent; color: #94a3b8; border: none; cursor: pointer; font-size: 14px; transition: 0.2s; text-decoration: underline; }
+        .close-modal:hover { color: #ef4444; }
+
         #toast-container {
             visibility: hidden; min-width: 250px; background-color: #10b981; color: #fff; text-align: center; border-radius: 12px;
             padding: 16px; position: fixed; z-index: 1001; right: 30px; bottom: 30px; font-size: 16px; font-weight: bold;
@@ -205,7 +234,7 @@
 
                 <h3>Focus Breakdown</h3>
                 <div style="width: 180px; height: 180px; margin: 0 auto; position: relative;">
-                    <canvas id="insightsChart"></canvas>
+                    <canvas id="insightsChart" style="position: relative; height: 100%; width: 100%;"></canvas>
                 </div>
                 <script id="insights-data" type="text/plain">
                     {{ insights | tojson | safe }}
@@ -320,19 +349,32 @@
                 <svg viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
                 LinkedIn
             </a>
-            <a href="#" onclick="copyEmail(event)">
+            <a href="#" onclick="openContactModal(event)">
                 <svg viewBox="0 0 24 24"><path d="M0 3v18h24v-18h-24zm6.623 7.929l-4.623 5.712v-9.458l4.623 3.746zm-4.141-5.929h19.035l-9.517 7.713-9.518-7.713zm5.694 7.188l3.824 3.099 3.83-3.104 5.612 6.817h-18.779l5.513-6.812zm9.208-1.264l4.616-3.741v9.348l-4.616-5.607z"/></svg>
                 Contact
             </a>
         </div>
     </div>
 
+    <!-- Contact Modal -->
+    <div id="contact-modal" class="modal-overlay" onclick="if(event.target===this) closeContactModal()">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 10px;">Let's Connect</h2>
+            <p style="color: #94a3b8; font-size: 14px; margin-bottom: 25px;">Feel free to reach out for feedback or collaboration!</p>
+            <div class="email-box">
+                <span class="email-text">hardikvirani.work@zohomail.in</span>
+                <button onclick="copyFromModal()" class="copy-btn">Copy</button>
+            </div>
+            <button onclick="closeContactModal()" class="close-modal">Close Window</button>
+        </div>
+    </div>
+
     <script>
         const ambientPlayer = document.getElementById('ambient-player');
         const ambientTracks = {
-            'rain': '/static/sounds/rain.wav',
-            'cafe': '/static/sounds/cafe.wav',
-            'waves': '/static/sounds/waves.wav'
+            'rain': 'https://assets.mixkit.co/active_storage/sfx/2515/2515-preview.mp3',
+            'cafe': 'https://assets.mixkit.co/active_storage/sfx/2658/2658-preview.mp3',
+            'waves': 'https://assets.mixkit.co/active_storage/sfx/2504/2504-preview.mp3'
         };
 
         function changeAmbient() {
@@ -357,13 +399,22 @@
             toastTimeout = setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        function copyEmail(e) {
+        function openContactModal(e) {
             e.preventDefault();
+            document.getElementById('contact-modal').classList.add('show');
+        }
+
+        function closeContactModal() {
+            document.getElementById('contact-modal').classList.remove('show');
+        }
+
+        function copyFromModal() {
             const emailToCopy = "hardikvirani.work@zohomail.in";
             
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(emailToCopy).then(() => {
                     showToast("📧 Email copied to clipboard!");
+                    closeContactModal();
                 }).catch(err => console.error('Failed to copy', err));
             } else {
                 const textArea = document.createElement("textarea");
@@ -374,6 +425,7 @@
                 try {
                     document.execCommand('copy');
                     showToast("📧 Email copied to clipboard!");
+                    closeContactModal();
                 } catch (err) {
                     console.error('Fallback copy failed', err);
                 }
