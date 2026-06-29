@@ -87,7 +87,7 @@ def home():
     if not insights:
         insights = {"Start a timer to see insights": 1}
 
-    # 2. Calculate Heatmap (Last 30 Days)
+    # 2. Calculate Heatmap (Last 30 Days - TODAY IS FIRST)
     heatmap_data = []
     try:
         today = date.today()
@@ -97,7 +97,6 @@ def home():
         active_dates = set()
         for s in recent_activity:
             if s.date:
-                # Fix: Safely handle both SQLite strings and Postgres datetime objects
                 if isinstance(s.date, str):
                     try:
                         parsed_date = datetime.strptime(s.date.split()[0], '%Y-%m-%d').date()
@@ -107,14 +106,15 @@ def home():
                 else:
                     active_dates.add(s.date.date())
 
+        # FIX: We now count backward from today (index 0) to 29 days ago
         for i in range(30):
-            d = today - timedelta(days=29 - i)
+            d = today - timedelta(days=i)
             heatmap_data.append(d in active_dates)
     except Exception as e:
         print("Heatmap Error:", e)
         db.session.rollback()
         heatmap_data = [False] * 30
-
+        
     # 3. Fetch Recent History (New Feature for Bento Grid)
     try:
         recent_history = FocusSession.query.filter_by(user_id=current_user.id).order_by(FocusSession.date.desc()).limit(3).all()

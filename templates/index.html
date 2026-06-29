@@ -401,12 +401,19 @@
         }
 
         function sendTimerNotification() {
-            if ("Notification" in window && Notification.permission === "granted") {
+            if (!("Notification" in window)) {
+                // Browser doesn't support it at all
+                alert("Session Complete! Great work. Time to take a breather.");
+            } else if (Notification.permission === "granted") {
+                // Fire the native desktop pop-up
                 const notification = new Notification("Deep Work Arena ⏳", {
                     body: "Session complete! Great work. Time to take a breather.",
-                    requireInteraction: true, // Forces the notification to stay on screen on PC
-                    vibrate: [200, 100, 200]  // Triggers a vibration pattern on supported mobile devices
+                    requireInteraction: true, 
+                    vibrate: [200, 100, 200]  
                 });
+            } else {
+                // SILENT KILLER FALLBACK: If notifications are denied/blocked, force an alert
+                alert("Session Complete! (Note: Desktop notifications are blocked. Click the lock icon next to your URL bar to enable them for the full experience).");
             }
         }
 
