@@ -93,7 +93,20 @@ def home():
         today = date.today()
         thirty_days_ago = today - timedelta(days=30)
         recent_activity = FocusSession.query.filter(FocusSession.user_id == current_user.id, FocusSession.date >= thirty_days_ago).all()
-        active_dates = {s.date.date() for s in recent_activity if s.date}
+        
+        active_dates = set()
+        for s in recent_activity:
+            if s.date:
+                # Fix: Safely handle both SQLite strings and Postgres datetime objects
+                if isinstance(s.date, str):
+                    try:
+                        parsed_date = datetime.strptime(s.date.split()[0], '%Y-%m-%d').date()
+                        active_dates.add(parsed_date)
+                    except:
+                        pass
+                else:
+                    active_dates.add(s.date.date())
+
         for i in range(30):
             d = today - timedelta(days=29 - i)
             heatmap_data.append(d in active_dates)

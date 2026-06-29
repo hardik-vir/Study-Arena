@@ -404,11 +404,9 @@
             if ("Notification" in window && Notification.permission === "granted") {
                 const notification = new Notification("Deep Work Arena ⏳", {
                     body: "Session complete! Great work. Time to take a breather.",
+                    requireInteraction: true, // Forces the notification to stay on screen on PC
+                    vibrate: [200, 100, 200]  // Triggers a vibration pattern on supported mobile devices
                 });
-
-                setTimeout(() => {
-                    notification.close();
-                }, 5000);
             }
         }
 
