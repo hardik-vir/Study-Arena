@@ -436,6 +436,34 @@
             document.getElementById('theme-select').value = savedTheme;
             renderChart();
         });
+        // Load saved theme on boot
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('arena-theme') || 'theme-default';
+            document.body.className = savedTheme;
+            document.getElementById('theme-select').value = savedTheme;
+            renderChart();
+
+            // ADD THIS ENTIRE BLOCK: The Ghost Session Recovery Engine
+            const savedEnd = localStorage.getItem('arena_end_time');
+            if (savedEnd && Date.now() >= parseInt(savedEnd)) {
+                // The timer finished while the mobile tab was dead! 
+                const cat = localStorage.getItem('arena_category') || 'General';
+                const mins = localStorage.getItem('arena_duration') || 25;
+                localStorage.removeItem('arena_end_time'); // Prevent infinite loops
+                
+                showToast("Recovered a background session! Syncing...");
+                
+                // Ping the backend to claim the streak and time
+                fetch('/update_time', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ minutes: parseInt(mins), category: cat })
+                }).then(() => { setTimeout(() => window.location.reload(), 2000); });
+                
+            } else if (savedEnd && Date.now() < parseInt(savedEnd)) {
+                // If they reload the page before the timer is actually done, clear it.
+                localStorage.removeItem('arena_end_time');
+            }
+        });
 
 
         // === UI UTILS ===
@@ -508,6 +536,7 @@
         function resetTimer() {
             if (timerId) clearInterval(timerId);
             if (pingInterval) clearInterval(pingInterval); 
+            localStorage.removeItem('arena_end_time');
             isRunning = false;
             timeLeft = duration;
             startBtn.innerText = 'Start Focus';
@@ -524,6 +553,9 @@
                 requestNotificationPermission();
 
                 endTime = Date.now() + (timeLeft * 1000);
+                localStorage.setItem('arena_end_time', endTime);
+                localStorage.setItem('arena_category', document.getElementById('task-category').value);
+                localStorage.setItem('arena_duration', duration / 60);
                 pingInterval = setInterval(() => {
                     fetch('/ping', { method: 'POST', cache: 'no-store' }).catch(e => console.log("Heartbeat missed"));
                 }, 5 * 60 * 1000);
@@ -533,7 +565,7 @@
                     if (timeLeft <= 0) {
                         timeLeft = 0; updateDisplay(); clearInterval(timerId); 
                         if (pingInterval) clearInterval(pingInterval);
-                        
+                        localStorage.removeItem('arena_end_time');
                         isRunning = false; startBtn.innerText = 'Start Focus';
                         successDing.play().catch(e => console.log("Sound blocked"));
                         showToast(); 
