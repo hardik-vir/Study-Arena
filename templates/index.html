@@ -384,7 +384,34 @@
         </div>
     </div>
 
-    <script>
+        <script>
+        // === NOTIFICATION ENGINE (NEW) ===
+        function requestNotificationPermission() {
+            if (!("Notification" in window)) {
+                console.log("This browser does not support desktop notifications.");
+                return;
+            }
+            if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+                Notification.requestPermission().then((permission) => {
+                    if (permission === "granted") {
+                        console.log("Notification permission granted.");
+                    }
+                });
+            }
+        }
+
+        function sendTimerNotification() {
+            if ("Notification" in window && Notification.permission === "granted") {
+                const notification = new Notification("Deep Work Arena ⏳", {
+                    body: "Session complete! Great work. Time to take a breather.",
+                });
+
+                setTimeout(() => {
+                    notification.close();
+                }, 5000);
+            }
+        }
+
         // === THEME ENGINE ===
         let insightsChartInstance = null;
 
@@ -488,6 +515,9 @@
                 if (pingInterval) clearInterval(pingInterval); 
                 startBtn.innerText = 'Start Focus'; isRunning = false;
             } else {
+                // ADDED: Ask for notification permission
+                requestNotificationPermission();
+
                 endTime = Date.now() + (timeLeft * 1000);
                 pingInterval = setInterval(() => {
                     fetch('/ping', { method: 'POST', cache: 'no-store' }).catch(e => console.log("Heartbeat missed"));
@@ -502,6 +532,9 @@
                         isRunning = false; startBtn.innerText = 'Start Focus';
                         successDing.play().catch(e => console.log("Sound blocked"));
                         showToast(); 
+                        
+                        // ADDED: Trigger the desktop notification
+                        sendTimerNotification();
                         
                         const selectedCategory = document.getElementById('task-category').value;
                         fetch('/update_time', {
