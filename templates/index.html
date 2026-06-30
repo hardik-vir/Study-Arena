@@ -6,7 +6,7 @@
     
     <meta property="og:title" content="Deep Work Arena | Level up your focus" />
     <meta property="og:description" content="Track your deep work. Climb the global leaderboard. Visualize your productivity." />
-    <meta property="og:image" content="https://i.postimg.cc/25bx9wvC/Screenshot-(217).png" />
+    <meta property="og:image" content="https://i.postimg.cc/wxG2qk1d/Screenshot-(213).png" />
     <meta property="og:url" content="https://global-study-arena.onrender.com/" />
     <meta property="og:type" content="website" />
 
@@ -106,7 +106,7 @@
         .timer-display { text-align: center; margin: 20px 0; position: relative; display: flex; justify-content: center;}
         .time-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; font-weight: bold; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
         
-        .btn { background: var(--primary); color: #0f172a; border: none; padding: 12px 24px; border-radius: 12px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; transition: 0.2s; }
+        .btn { background: var(--primary); color: #0f172a; border: none; padding: 12px 24px; border-radius: 12px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
         .btn:hover { background: var(--primary-hover); transform: translateY(-2px); }
         
         .time-buttons { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; justify-content: center; }
@@ -300,8 +300,10 @@
                 </div>
 
                 <div style="display: flex; gap: 10px;">
-                    <button class="btn" id="start-btn" onclick="toggleTimer()" style="font-size: 18px; padding: 15px;">Start Focus</button>
-                    <button class="btn" onclick="resetTimer()" style="background: var(--border-light); color: var(--text-main); border: 1px solid var(--border-faint); flex: 0.4;">Reset</button>
+                    <button class="btn" id="start-btn" onclick="toggleTimer()" style="font-size: 18px; padding: 15px; flex: 1;">Start Focus</button>
+                    <!-- NEW DYNAMIC BUTTON -->
+                    <button class="btn" id="finish-btn" onclick="finishEarly()" style="background: var(--secondary); color: #fff; font-size: 18px; padding: 15px; flex: 1; display: none;">Finish & Save</button>
+                    <button class="btn" onclick="resetTimer()" style="background: var(--border-light); color: var(--text-main); border: 1px solid var(--border-faint); flex: 0.4; padding: 15px;">Reset</button>
                 </div>
 
                 <h3 style="margin-top: 30px; text-align: center; border-top: 1px solid var(--border-light); padding-top: 20px;">Recent Sessions</h3>
@@ -384,36 +386,26 @@
         </div>
     </div>
 
-        <script>
-        // === NOTIFICATION ENGINE (NEW) ===
+    <script>
+        // === NOTIFICATION ENGINE ===
         function requestNotificationPermission() {
-            if (!("Notification" in window)) {
-                console.log("This browser does not support desktop notifications.");
-                return;
-            }
+            if (!("Notification" in window)) return;
             if (Notification.permission !== "granted" && Notification.permission !== "denied") {
-                Notification.requestPermission().then((permission) => {
-                    if (permission === "granted") {
-                        console.log("Notification permission granted.");
-                    }
-                });
+                Notification.requestPermission();
             }
         }
 
         function sendTimerNotification() {
-            if (!("Notification" in window)) {
-                // Browser doesn't support it at all
-                alert("Session Complete! Great work. Time to take a breather.");
-            } else if (Notification.permission === "granted") {
-                // Fire the native desktop pop-up
-                const notification = new Notification("Deep Work Arena ⏳", {
-                    body: "Session complete! Great work. Time to take a breather.",
-                    requireInteraction: true, 
-                    vibrate: [200, 100, 200]  
-                });
-            } else {
-                // SILENT KILLER FALLBACK: If notifications are denied/blocked, force an alert
-                alert("Session Complete! (Note: Desktop notifications are blocked. Click the lock icon next to your URL bar to enable them for the full experience).");
+            if ("Notification" in window && Notification.permission === "granted") {
+                try {
+                    new Notification("Deep Work Arena ⏳", {
+                        body: "Session complete! Great work. Time to take a breather.",
+                        requireInteraction: true, 
+                        vibrate: [200, 100, 200]  
+                    });
+                } catch (e) {
+                    console.log("Notification failed to push: ", e);
+                }
             }
         }
 
@@ -424,47 +416,34 @@
             const choice = document.getElementById('theme-select').value;
             document.body.className = choice; 
             localStorage.setItem('arena-theme', choice);
-            
-            // Re-render chart to pick up new CSS variables
             renderChart();
         }
 
-        // Load saved theme on boot
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('arena-theme') || 'theme-default';
-            document.body.className = savedTheme;
-            document.getElementById('theme-select').value = savedTheme;
-            renderChart();
-        });
-        // Load saved theme on boot
+        // === BOOT & GHOST SESSION RECOVERY ENGINE ===
         window.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('arena-theme') || 'theme-default';
             document.body.className = savedTheme;
             document.getElementById('theme-select').value = savedTheme;
             renderChart();
 
-            // ADD THIS ENTIRE BLOCK: The Ghost Session Recovery Engine
+            // Mobile Ghost Session Recovery
             const savedEnd = localStorage.getItem('arena_end_time');
             if (savedEnd && Date.now() >= parseInt(savedEnd)) {
-                // The timer finished while the mobile tab was dead! 
                 const cat = localStorage.getItem('arena_category') || 'General';
                 const mins = localStorage.getItem('arena_duration') || 25;
-                localStorage.removeItem('arena_end_time'); // Prevent infinite loops
+                localStorage.removeItem('arena_end_time'); 
                 
                 showToast("Recovered a background session! Syncing...");
                 
-                // Ping the backend to claim the streak and time
                 fetch('/update_time', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ minutes: parseInt(mins), category: cat })
                 }).then(() => { setTimeout(() => window.location.reload(), 2000); });
                 
             } else if (savedEnd && Date.now() < parseInt(savedEnd)) {
-                // If they reload the page before the timer is actually done, clear it.
                 localStorage.removeItem('arena_end_time');
             }
         });
-
 
         // === UI UTILS ===
         let toastTimeout;
@@ -500,14 +479,14 @@
             }
         }
 
-        // USING FLASK STATIC ROUTE FOR LOCAL AUDIO (UPDATED PATH)
         const successDing = new Audio("{{ url_for('static', filename='sounds/success.wav') }}");
         successDing.volume = 0.6; 
 
         // === TIMER ENGINE ===
         let duration = 25 * 60, timeLeft = duration, timerId = null, isRunning = false, endTime = null, pingInterval = null; 
         const timeText = document.getElementById('time-left'), progressRing = document.getElementById('progress-ring');
-        const startBtn = document.getElementById('start-btn'); 
+        const startBtn = document.getElementById('start-btn');
+        const finishBtn = document.getElementById('finish-btn');
         const circumference = 2 * Math.PI * 110;
 
         function updateDisplay() {
@@ -516,7 +495,6 @@
             let progress = timeLeft / duration;
             progressRing.style.strokeDashoffset = circumference - (progress * circumference);
             
-            // Dynamic color based on progress but tied to Theme CSS Variables
             if (progress > 0.5) progressRing.style.stroke = 'var(--primary)'; 
             else if (progress > 0.2) progressRing.style.stroke = 'var(--chart-3)'; 
             else progressRing.style.stroke = 'var(--danger)'; 
@@ -540,6 +518,7 @@
             isRunning = false;
             timeLeft = duration;
             startBtn.innerText = 'Start Focus';
+            finishBtn.style.display = 'none'; // Hide the finish button
             updateDisplay();
         }
 
@@ -549,43 +528,93 @@
                 if (pingInterval) clearInterval(pingInterval); 
                 startBtn.innerText = 'Start Focus'; isRunning = false;
             } else {
-                // ADDED: Ask for notification permission
                 requestNotificationPermission();
 
                 endTime = Date.now() + (timeLeft * 1000);
+                
                 localStorage.setItem('arena_end_time', endTime);
                 localStorage.setItem('arena_category', document.getElementById('task-category').value);
                 localStorage.setItem('arena_duration', duration / 60);
+
                 pingInterval = setInterval(() => {
                     fetch('/ping', { method: 'POST', cache: 'no-store' }).catch(e => console.log("Heartbeat missed"));
                 }, 5 * 60 * 1000);
 
                 timerId = setInterval(() => {
                     timeLeft = Math.round((endTime - Date.now()) / 1000);
+                    
                     if (timeLeft <= 0) {
-                        timeLeft = 0; updateDisplay(); clearInterval(timerId); 
+                        timeLeft = 0; 
+                        updateDisplay(); 
+                        clearInterval(timerId); 
                         if (pingInterval) clearInterval(pingInterval);
+                        
                         localStorage.removeItem('arena_end_time');
-                        isRunning = false; startBtn.innerText = 'Start Focus';
-                        successDing.play().catch(e => console.log("Sound blocked"));
-                        showToast(); 
                         
-                        // ADDED: Trigger the desktop notification
-                        sendTimerNotification();
+                        isRunning = false; 
+                        startBtn.innerText = 'Start Focus';
+                        finishBtn.style.display = 'none';
                         
+                        // 1. SAVE TO DATABASE FIRST
                         const selectedCategory = document.getElementById('task-category').value;
                         fetch('/update_time', {
-                            method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            method: 'POST', 
+                            headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ minutes: duration / 60, category: selectedCategory })
-                        }).then(() => { setTimeout(() => window.location.reload(), 3000); })
-                          .catch(err => console.error("Update error:", err));
+                        }).then(() => { 
+                            setTimeout(() => window.location.reload(), 3000); 
+                        }).catch(err => console.error("Update error:", err));
+
+                        // 2. TRIGGER UI & SOUNDS SECOND
+                        successDing.play().catch(e => console.log("Sound blocked"));
+                        showToast(); 
+                        sendTimerNotification(); 
+                        
                         return; 
                     }
                     updateDisplay();
                 }, 1000);
-                startBtn.innerText = 'Pause'; isRunning = true;
+                
+                startBtn.innerText = 'Pause'; 
+                finishBtn.style.display = 'block'; // Reveal the finish button
+                isRunning = true;
             }
         }
+        
+        // NEW FEATURE: Finish Early Logic
+        function finishEarly() {
+            let elapsedSeconds = duration - timeLeft;
+            let elapsedMinutes = Math.floor(elapsedSeconds / 60);
+
+            if (elapsedMinutes < 1) {
+                showToast("Session too short to save. Minimum 1 minute required!");
+                return;
+            }
+
+            if (confirm(`You focused for ${elapsedMinutes} minutes. Save and end session?`)) {
+                clearInterval(timerId);
+                if (pingInterval) clearInterval(pingInterval);
+                localStorage.removeItem('arena_end_time');
+                
+                isRunning = false;
+                startBtn.innerText = 'Start Focus';
+                finishBtn.style.display = 'none';
+                
+                const selectedCategory = document.getElementById('task-category').value;
+                fetch('/update_time', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ minutes: elapsedMinutes, category: selectedCategory })
+                }).then(() => {
+                    setTimeout(() => window.location.reload(), 3000);
+                }).catch(err => console.error("Update error:", err));
+
+                successDing.play().catch(e => console.log("Sound blocked"));
+                showToast(`🎉 Logged ${elapsedMinutes} mins! Leveling up...`);
+                sendTimerNotification();
+            }
+        }
+        
         updateDisplay(); 
 
         // === ACCOUNT DANGER ZONE ===
@@ -623,7 +652,6 @@
             if (typeof Chart !== 'undefined') {
                 if (insightsChartInstance) { insightsChartInstance.destroy(); }
                 
-                // Fetch live colors from current CSS variables
                 const style = getComputedStyle(document.body);
                 const colors = [
                     style.getPropertyValue('--chart-1').trim() || '#38bdf8',
