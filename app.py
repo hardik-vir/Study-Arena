@@ -1,7 +1,7 @@
 import os
 import traceback
 from datetime import date, timedelta, datetime
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -72,6 +72,12 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 # --- THE ROUTES ---
+@app.route('/robots.txt')
+def robots():
+    # This tells Googlebot that all search engines are allowed to crawl the public pages
+    robots_content = "User-agent: *\nAllow: /\n"
+    return Response(robots_content, mimetype="text/plain")
+
 @app.route('/')
 @login_required
 def home():
