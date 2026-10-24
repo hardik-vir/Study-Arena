@@ -221,6 +221,14 @@
             .timer-display svg { max-width: 250px; height: auto; }
             .dashboard-wrapper { padding: 15px 10px; } 
         }
+
+        .time-input {
+            width: 100%; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-light); 
+            padding: 12px; border-radius: 8px; font-size: 16px; outline: none; text-align: center;
+            appearance: textfield; -moz-appearance: textfield;
+        }
+        .time-input:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
+        .time-input::-webkit-outer-spin-button, .time-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body>
@@ -292,9 +300,11 @@
                         <button class="time-btn" onclick="setTime(30)">30m</button>
                         <button class="time-btn" onclick="setTime(60)">1h</button>
                     </div>
-                    <div style="display: flex; gap: 10px; width: 100%;">
-                        <input type="number" id="custom-minutes" placeholder="Custom Mins" min="1">
-                        <button class="time-btn" onclick="setCustomTime()" style="background: var(--primary); color: #0f172a; font-weight: bold; flex: 0.5;">Set</button>
+                    <div style="display: flex; gap: 8px; width: 100%;">
+                        <input type="number" id="custom-h" class="time-input" placeholder="HH" min="0">
+                        <input type="number" id="custom-m" class="time-input" placeholder="MM" min="0" max="59">
+                        <input type="number" id="custom-s" class="time-input" placeholder="SS" min="0" max="59">
+                        <button class="time-btn" onclick="setCustomTime()" style="background: var(--primary); color: #0f172a; font-weight: bold; flex: 1;">Set</button>
                     </div>
                 </div>
                 
@@ -345,9 +355,12 @@
                 </div>
                 
                 <h3 style="margin-top: 30px;">30-Day Activity</h3>
-                <div class="heatmap">
-                    {% for is_active in heatmap_data %}
-                    <div class="day-cell {% if is_active %}day-active{% endif %}"></div>
+               <div class="heatmap">
+                    {% for day in heatmap_data %}
+                    <div class="day-cell {% if day.active %}day-active{% endif %}" 
+                         onclick="fetchDayDetails('{{ day.date }}')"
+                         style="cursor: pointer;"
+                         title="{{ day.date }}"></div>
                     {% endfor %}
                 </div>
 
@@ -390,6 +403,17 @@
                 <button onclick="copyFromModal()" class="copy-btn">Copy</button>
             </div>
             <button onclick="closeContactModal()" class="close-modal">Close Window</button>
+        </div>
+    </div>
+
+    <!-- Day Details Modal -->
+    <div id="day-modal" class="modal-overlay" onclick="if(event.target===this) closeDayModal()">
+        <div class="modal-content">
+            <h2 id="day-modal-title" style="margin-bottom: 15px;">Session Details</h2>
+            <div id="day-modal-body" style="text-align: left; color: var(--text-main); margin-bottom: 20px;">
+                <!-- dynamic content injected here -->
+            </div>
+            <button onclick="closeDayModal()" class="close-modal">Close Window</button>
         </div>
     </div>
 
@@ -514,8 +538,21 @@
 
         function setCustomTime() {
             if (isRunning) return; 
-            const input = document.getElementById('custom-minutes'), mins = parseInt(input.value);
-            if (mins && mins > 0) { setTime(mins); input.value = ''; }
+            const h = parseInt(document.getElementById('custom-h').value) || 0;
+            const m = parseInt(document.getElementById('custom-m').value) || 0;
+            const s = parseInt(document.getElementById('custom-s').value) || 0;
+            
+            const totalSeconds = (h * 3600) + (m * 60) + s;
+            if (totalSeconds > 0) { 
+                duration = totalSeconds; 
+                timeLeft = duration; 
+                updateDisplay();
+                
+                // Clear the boxes
+                document.getElementById('custom-h').value = '';
+                document.getElementById('custom-m').value = '';
+                document.getElementById('custom-s').value = '';
+            }
         }
 
         function resetTimer() {
@@ -678,12 +715,63 @@
                     options: { 
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: { legend: { position: 'bottom', labels: { color: textColor, font: {size: 11} } } }, 
+                        plugins: { 
+                            legend: { position: 'bottom', labels: { color: textColor, font: {size: 11} } },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        if (label) { label += ': '; }
+                                        let val = context.raw || 0;
+                                        let h = Math.floor(val / 60);
+                                        let m = val % 60;
+                                        label += h > 0 ? `${h}h ${m}m` : `${m}m`;
+                                        return label;
+                                    }
+                                }
+                            }
+                        }, 
                         cutout: '75%' 
                     }
                 });
             }
         }
+
+
+        //new updates
+        function fetchDayDetails(dateStr) {
+            document.getElementById('day-modal-title').innerText = "Activity on " + dateStr;
+            document.getElementById('day-modal-body').innerHTML = "<p style='text-align:center;'>Loading data...</p>";
+            document.getElementById('day-modal').classList.add('show');
+            
+            fetch('/api/history/' + dateStr)
+                .then(res => res.json())
+                .then(data => {
+                    if(data.status === 'success') {
+                        let html = '';
+                        let total = 0;
+                        for(const [cat, mins] of Object.entries(data.breakdown)) {
+                            let h = Math.floor(mins / 60);
+                            let m = mins % 60;
+                            let timeStr = h > 0 ? `${h}h ${m}m` : `${m}m`;
+                            html += `<div class="stat-block"><span style="color:var(--text-muted)">${cat}</span> <strong>${timeStr}</strong></div>`;
+                            total += mins;
+                        }
+                        if(total === 0) {
+                            html = "<p style='text-align:center; color: var(--text-muted);'>No deep work logged on this day.</p>";
+                        } else {
+                            let th = Math.floor(total / 60);
+                            let tm = total % 60;
+                            let totalStr = th > 0 ? `${th}h ${tm}m` : `${tm}m`;
+                            html += `<div class="stat-block" style="border-color: var(--primary); background: var(--primary-glow);"><span style="color:var(--text-main); font-weight:bold;">Total Focus</span> <strong>${totalStr}</strong></div>`;
+                        }
+                        document.getElementById('day-modal-body').innerHTML = html;
+                    }
+                });
+        }
+        function closeDayModal() { document.getElementById('day-modal').classList.remove('show'); }
+
+
     </script>
 </body>
 </html>

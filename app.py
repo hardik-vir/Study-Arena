@@ -113,9 +113,13 @@ def home():
                     active_dates.add(s.date.date())
 
         # FIX: We now count backward from today (index 0) to 29 days ago
+        # FIX: We now pass the date string along with the boolean for the modal
         for i in range(30):
             d = today - timedelta(days=i)
-            heatmap_data.append(d in active_dates)
+            heatmap_data.append({
+                'date': d.strftime('%Y-%m-%d'),
+                'active': d in active_dates
+            })
     except Exception as e:
         print("Heatmap Error:", e)
         db.session.rollback()
@@ -222,6 +226,29 @@ def delete_account():
     except Exception as e:
         db.session.rollback()
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@app.route('/api/history/<date_str>', methods=['GET'])
+@login_required
+def get_history(date_str):
+    try:
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        next_date = target_date + timedelta(days=1)
+        
+        # Fetch all sessions for this user on the clicked date
+        sessions = FocusSession.query.filter(
+            FocusSession.user_id == current_user.id,
+            FocusSession.date >= target_date,
+            FocusSession.date < next_date
+        ).all()
+        
+        breakdown = {}
+        for s in sessions:
+            cat = s.category or "General"
+            breakdown[cat] = breakdown.get(cat, 0) + (s.duration_minutes or 0)
+            
+        return jsonify({'status': 'success', 'date': date_str, 'breakdown': breakdown})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 400
 
 @app.route('/ping', methods=['GET', 'POST'])
 def ping():
