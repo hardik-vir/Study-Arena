@@ -36,15 +36,23 @@
         }
         
         .navbar { 
-            width: 100%; background: var(--card-bg); backdrop-filter: blur(10px); 
-            padding: 20px 40px; border-bottom: 1px solid var(--border-light);
+            width: 90%; max-width: 1200px; 
+            margin: 25px auto 0; /* Drops it down from the top and centers it */
+            background: rgba(15, 23, 42, 0.25); /* Ultra-transparent */
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); /* Heavy glass effect */
+            padding: 15px 30px; 
+            border: 1px solid rgba(255, 255, 255, 0.08); /* Subtle glass edge */
+            border-radius: 50px; /* Perfectly rounded sides */
             display: flex; justify-content: flex-end; align-items: center; 
             position: relative; box-sizing: border-box;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); /* Floating shadow */
+            z-index: 100;
         }
         .navbar-brand { 
             position: absolute; left: 50%; transform: translateX(-50%);
-            font-size: 24px; font-weight: 900; text-transform: uppercase; margin: 0; 
-            text-shadow: 0 0 10px var(--primary-glow); 
+            font-size: 22px; font-weight: 900; text-transform: uppercase; margin: 0; 
+            text-shadow: 0 0 15px var(--primary-glow);
+            letter-spacing: 1.5px;
         }
         .nav-links a { color: var(--text-main); text-decoration: none; margin-left: 20px; font-weight: bold; transition: 0.2s; }
         .nav-links a:hover { color: var(--primary); }
@@ -130,10 +138,12 @@
         /* Mobile Responsiveness */
         @media (max-width: 768px) {
             .navbar {
-                flex-direction: column; padding: 15px; gap: 15px; justify-content: center;
+                width: 92%; margin: 15px auto 0;
+                flex-direction: column; padding: 20px; gap: 15px; justify-content: center;
+                border-radius: 24px; /* Changes from a pill to a sleek rounded rectangle on mobile */
             }
             .navbar-brand {
-                position: relative; left: auto; transform: none; font-size: 22px;
+                position: relative; left: auto; transform: none; font-size: 22px; text-align: center;
             }
             .nav-links {
                 display: flex; gap: 15px; align-items: center; width: 100%; justify-content: center;
@@ -145,6 +155,7 @@
             .btn { width: 100%; box-sizing: border-box; }
             .feature-card { padding: 30px 20px; }
         }
+        
 
     </style>
 </head>
