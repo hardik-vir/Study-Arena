@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Deep Work Arena | Best Focus Timer & Productivity Dashboard</title>
+    <link rel="canonical" href="https://deepworkarena.onrender.com/" />
+    <meta name="description" content="Deep Work Arena is the best focus timer and productivity dashboard. Track your deep work sessions, build streaks, and climb the global leaderboard." />
+    <meta name="keywords" content="deep work arena, best focus timer, pomodoro app, productivity tracker, study timer, habit tracker" />
+    
+    <!-- Open Graph for Social Media -->
+    <meta property="og:title" content="Deep Work Arena | Best Focus Timer" />
+    <meta property="og:description" content="Track your deep work. Climb the global leaderboard. Visualize your productivity." />
+    <meta property="og:image" content="https://i.postimg.cc/wxG2qk1d/Screenshot-(213).png" />
+    <meta property="og:url" content="https://deepworkarena.onrender.com/" />
+    <meta property="og:type" content="website" />
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='DWA-favicon.png') }}">
+    
+    <style>
+        :root {
+            --bg-grad-1: #0f172a; --bg-grad-2: #1e293b;
+            --primary: #38bdf8; --primary-hover: #0ea5e9;
+            --primary-glow: rgba(56, 189, 248, 0.3);
+            --text-main: #f8fafc; --text-muted: #94a3b8;
+            --card-bg: rgba(30, 41, 59, 0.6);
+            --border-light: rgba(255,255,255,0.1);
+        }
+        
+        body { 
+            background: linear-gradient(135deg, var(--bg-grad-1), var(--bg-grad-2)); 
+            background-attachment: fixed;
+            color: var(--text-main); font-family: sans-serif; 
+            margin: 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+        }
+        
+        .navbar { 
+            width: 100%; background: var(--card-bg); backdrop-filter: blur(10px); 
+            padding: 20px 0; border-bottom: 1px solid var(--border-light);
+            display: flex; justify-content: space-around; align-items: center;
+        }
+        .navbar-brand { font-size: 24px; font-weight: 900; text-transform: uppercase; margin: 0; text-shadow: 0 0 10px var(--primary-glow); }
+        .nav-links a { color: var(--text-main); text-decoration: none; margin-left: 20px; font-weight: bold; transition: 0.2s; }
+        .nav-links a:hover { color: var(--primary); }
+        
+        .hero {
+            max-width: 800px; text-align: center; padding: 80px 20px;
+        }
+        .hero h1 { font-size: 48px; margin-bottom: 20px; color: var(--primary); text-shadow: 0 0 15px var(--primary-glow); }
+        .hero p { font-size: 20px; color: var(--text-muted); line-height: 1.6; margin-bottom: 40px; }
+        
+        .cta-buttons { display: flex; gap: 20px; justify-content: center; }
+        .btn { 
+            padding: 15px 30px; border-radius: 12px; font-size: 18px; font-weight: bold; 
+            text-decoration: none; transition: 0.2s; cursor: pointer; border: none;
+        }
+        .btn-primary { background: var(--primary); color: #0f172a; box-shadow: 0 0 15px var(--primary-glow); }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-3px); box-shadow: 0 0 25px var(--primary-glow); }
+        .btn-secondary { background: transparent; color: var(--text-main); border: 2px solid var(--border-light); }
+        .btn-secondary:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-3px); }
+
+        .features {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 30px; max-width: 1000px; padding: 40px 20px; width: 100%;
+        }
+        .feature-card {
+            background: var(--card-bg); border: 1px solid var(--border-light);
+            padding: 30px; border-radius: 20px; text-align: center;
+        }
+        .feature-card h3 { color: var(--primary); margin-bottom: 15px; }
+        .feature-card p { color: var(--text-muted); line-height: 1.5; }
+
+        .app-footer { margin-top: auto; padding: 40px 0 20px; text-align: center; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="navbar-brand">Deep Work Arena</div>
+        <div class="nav-links">
+            <a href="{{ url_for('login') }}">Login</a>
+            <a href="{{ url_for('register') }}" style="background: var(--primary); color: #0f172a; padding: 8px 16px; border-radius: 8px;">Sign Up</a>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <h1>Unbreakable Focus.</h1>
+        <p>An elite focus timer and productivity dashboard engineered to block out noise, track your sessions, and help you climb the global leaderboard.</p>
+        
+        <div class="cta-buttons">
+            <a href="{{ url_for('register') }}" class="btn btn-primary">Enter the Arena</a>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary">Login</a>
+        </div>
+    </div>
+
+    <div class="features">
+        <div class="feature-card">
+            <h3>Ghost Sessions</h3>
+            <p>Our absolute-timestamp architecture ensures your timer never falls out of sync, even if your browser goes to sleep.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Global Leaderboard</h3>
+            <p>Compete against other developers and students. Turn your deep work into a measurable climb to the top.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Activity Heatmaps</h3>
+            <p>Visualize your 30-day streak with dynamic GitHub-style heatmaps and detailed category analytics.</p>
+        </div>
+    </div>
+
+    <div class="app-footer">
+        <div>Built by <strong>Hardik Virani</strong> 🚀</div>
+    </div>
+
+</body>
+</html>

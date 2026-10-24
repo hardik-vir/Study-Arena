@@ -79,8 +79,14 @@ def robots():
     return Response(robots_content, mimetype="text/plain")
 
 @app.route('/')
+def index():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    return render_template('landing.html')
+
+@app.route('/dashboard')
 @login_required
-def home():
+def dashboard():
     top_users = User.query.order_by(User.total_focus_time.desc()).limit(10).all()
     
     # 1. Calculate Insights (Pie Chart)
@@ -145,7 +151,7 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             login_user(user)
-            return redirect(url_for('home'))
+            return redirect(url_for('dashboard'))
         flash('Invalid username or password')
     return render_template('login.html')
 
@@ -169,7 +175,7 @@ def register():
         db.session.add(new_user)
         db.session.commit()
         login_user(new_user)
-        return redirect(url_for('home'))
+        return redirect(url_for('dashboard'))
     return render_template('register.html')
 
 @app.route('/logout')
