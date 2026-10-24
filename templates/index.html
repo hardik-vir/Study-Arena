@@ -4,20 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <meta property="og:title" content="Deep Work Arena | Level up your focus" />
-    <meta property="og:description" content="Track your deep work. Climb the global leaderboard. Visualize your productivity." />
-    <meta property="og:image" content="https://i.postimg.cc/wxG2qk1d/Screenshot-(213).png" />
-    <meta property="og:url" content="https://global-study-arena.onrender.com/" />
-    <meta property="og:type" content="website" />
+    <title>Deep Work Arena | Best Focus Timer & Productivity Dashboard</title>
     
-    <meta name="google-site-verification" content="y-Pox0EFLMvYvlNPDMCa858kklPjTXmsFU6JiqtulsU" />
-    <!-- Standard SEO Tags -->
-    <meta name="description" content="Deep Work Arena is an unbreakable focus timer and productivity dashboard. Track your sessions, build streaks, and climb the global leaderboard." />
-    <meta name="keywords" content="deep work, focus timer, pomodoro app, productivity tracker, study timer, habit tracker, vibecoding" />
+    <!-- Canonical Tag (Crucial: Tells Google this is the master URL, preventing duplicate content penalties) -->
+    <link rel="canonical" href="https://deepworkarena.onrender.com/" />
+
+    <meta name="description" content="Deep Work Arena is the best focus timer and productivity dashboard. Track your deep work sessions, build streaks, and climb the global leaderboard." />
+    <meta name="keywords" content="deep work arena, best focus timer, pomodoro app, productivity tracker, study timer, habit tracker" />
     <meta name="author" content="Hardik Virani" />
     <meta name="robots" content="index, follow" />
 
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏳</text></svg>">
+    <!-- Open Graph (For LinkedIn/Twitter link previews) -->
+    <meta property="og:title" content="Deep Work Arena | Best Focus Timer" />
+    <meta property="og:description" content="Track your deep work. Climb the global leaderboard. Visualize your productivity." />
+    <meta property="og:image" content="https://i.postimg.cc/wxG2qk1d/Screenshot-(213).png" />
+    <meta property="og:url" content="https://deepworkarena.onrender.com/" />
+    <meta property="og:type" content="website" />
+    
+    <meta name="google-site-verification" content="y-Pox0EFLMvYvlNPDMCa858kklPjTXmsFU6JiqtulsU" />
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='DWA-favicon.png') }}">
     <title>Deep Work Arena</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -216,9 +222,20 @@
         }
         #toast-container.show { visibility: visible; opacity: 1; bottom: 50px; }
         
-        @media (max-width: 1024px) { 
-            .bento-grid { grid-template-columns: 1fr; } 
-            .timer-display svg { max-width: 250px; height: auto; }
+        /* Prevent graphs and timers from breaking out of their boxes */
+        canvas, svg { max-width: 100%; height: auto !important; }
+
+        /* Tablet/F12 View: Stacks Leaderboard and Profile, pushes Timer below */
+        @media (max-width: 1200px) {
+            .bento-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
+            .bento-card:nth-child(2) { grid-column: 1 / -1; order: -1; } /* Moves Timer to the top */
+        }
+        
+        /* Mobile View: Stacks everything into a single vertical column */
+        @media (max-width: 850px) { 
+            .bento-grid { grid-template-columns: 1fr; display: flex; flex-direction: column; } 
+            .bento-card { width: 100%; box-sizing: border-box; }
+            .timer-display svg { max-width: 240px; }
             .dashboard-wrapper { padding: 15px 10px; } 
         }
 
