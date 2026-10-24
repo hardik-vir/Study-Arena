@@ -37,10 +37,15 @@
         
         .navbar { 
             width: 100%; background: var(--card-bg); backdrop-filter: blur(10px); 
-            padding: 20px 0; border-bottom: 1px solid var(--border-light);
-            display: flex; justify-content: space-around; align-items: center;
+            padding: 20px 40px; border-bottom: 1px solid var(--border-light);
+            display: flex; justify-content: flex-end; align-items: center; 
+            position: relative; box-sizing: border-box;
         }
-        .navbar-brand { font-size: 24px; font-weight: 900; text-transform: uppercase; margin: 0; text-shadow: 0 0 10px var(--primary-glow); }
+        .navbar-brand { 
+            position: absolute; left: 50%; transform: translateX(-50%);
+            font-size: 24px; font-weight: 900; text-transform: uppercase; margin: 0; 
+            text-shadow: 0 0 10px var(--primary-glow); 
+        }
         .nav-links a { color: var(--text-main); text-decoration: none; margin-left: 20px; font-weight: bold; transition: 0.2s; }
         .nav-links a:hover { color: var(--primary); }
         
@@ -72,9 +77,20 @@
         .feature-card p { color: var(--text-muted); line-height: 1.5; }
 
         .app-footer { margin-top: auto; padding: 40px 0 20px; text-align: center; color: var(--text-muted); }
+
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
+    <canvas id="particle-canvas"></canvas>
 
     <nav class="navbar">
         <div class="navbar-brand">Deep Work Arena</div>
@@ -112,6 +128,103 @@
     <div class="app-footer">
         <div>Built by <strong>Hardik Virani</strong> 🚀</div>
     </div>
+
+    <script>
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        
+        // Track mouse position
+        let mouse = { x: null, y: null, radius: 150 };
+        window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
+        window.addEventListener('mouseout', () => { mouse.x = null; mouse.y = null; });
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            init();
+        }
+        window.addEventListener('resize', resize);
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 1.5;
+                this.vy = (Math.random() - 0.5) * 1.5;
+                this.radius = Math.random() * 2 + 1;
+            }
+            update() {
+                // Move particles
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Bounce off edges
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.5)'; // Primary Blue
+                ctx.fill();
+            }
+        }
+
+        function init() {
+            particles = [];
+            // Dynamically scale particle count based on screen size
+            let numberOfParticles = (canvas.width * canvas.height) / 10000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                
+                // Draw lines between nearby particles
+                for (let j = i; j < particles.length; j++) {
+                    let dx = particles[i].x - particles[j].x;
+                    let dy = particles[i].y - particles[j].y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 100) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(56, 189, 248, ${1 - distance/100})`;
+                        ctx.lineWidth = 1;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+                
+                // Draw interactive purple line to mouse
+                if (mouse.x != null) {
+                    let dx = particles[i].x - mouse.x;
+                    let dy = particles[i].y - mouse.y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < mouse.radius) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(168, 85, 247, ${1 - distance/mouse.radius})`; // Purple glow
+                        ctx.lineWidth = 1.5;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(mouse.x, mouse.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        resize();
+        animate();
+    </script>
 
 </body>
 </html>
