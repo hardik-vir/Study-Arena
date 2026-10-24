@@ -114,6 +114,38 @@
             z-index: -1;
             pointer-events: none;
         }
+
+        /* Pulsing Status Dot */
+        @keyframes pulse-dot {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .status-dot {
+            width: 10px; height: 10px; background: #10b981;
+            border-radius: 50%; display: inline-block;
+            animation: pulse-dot 2s infinite; margin-right: 2px;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column; padding: 15px; gap: 15px; justify-content: center;
+            }
+            .navbar-brand {
+                position: relative; left: auto; transform: none; font-size: 22px;
+            }
+            .nav-links {
+                display: flex; gap: 15px; align-items: center; width: 100%; justify-content: center;
+            }
+            .nav-links a { margin: 0; }
+            .hero h1 { font-size: 42px; margin-top: 10px; }
+            .hero p { font-size: 16px; padding: 0 10px; }
+            .cta-buttons { flex-direction: column; width: 100%; }
+            .btn { width: 100%; box-sizing: border-box; }
+            .feature-card { padding: 30px 20px; }
+        }
+
     </style>
 </head>
 <body>
@@ -128,9 +160,9 @@
     </nav>
 
     <div class="hero">
-        <div class="hero-badge">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-            The Ultimate Productivity Engine
+        <div class="hero-badge" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); color: #10b981;">
+            <span class="status-dot"></span>
+            Global Arena: Live
         </div>
         <h1>Weaponize Your Focus.</h1>
         <p>An elite, ad-free focus environment engineered to block out noise, track your deep work sessions, and gamify your execution.</p>
