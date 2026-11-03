@@ -531,7 +531,22 @@
         successDing.volume = 0.6; 
 
         // === TIMER ENGINE ===
-        let duration = 25 * 60, timeLeft = duration, timerId = null, isRunning = false, endTime = null, pingInterval = null; 
+        let duration = 25*60, timeLeft = duration, timerId = null, isRunning = false, endTime = null;
+        let isSaving = false; // Tells the browser when a reload is intentional
+
+        // === CONTINUOUS HEARTBEAT (Prevents Render Sleep on Pause) ===
+        setInterval(() => {
+            fetch('/ping', { method: 'POST', cache: 'no-store' }).catch(() => {});
+        }, 4 * 60 * 1000); // Pings every 4 minutes no matter what
+
+        // === ACCIDENTAL REFRESH PROTECTION ===
+        window.addEventListener('beforeunload', (e) => {
+            // If the timer is running or paused with progress, and we aren't deliberately saving
+            if ((isRunning || timeLeft < duration) && !isSaving) {
+                e.preventDefault();
+                e.returnValue = ''; // Triggers the browser's "Leave site?" warning
+            }
+        });
         const timeText = document.getElementById('time-left'), progressRing = document.getElementById('progress-ring');
         const startBtn = document.getElementById('start-btn');
         const finishBtn = document.getElementById('finish-btn');
@@ -573,6 +588,10 @@
         }
 
         function resetTimer() {
+        // Check if progress exists. If yes, ask for confirmation before resetting.
+            if (timeLeft < duration && !confirm("⚠️ Are you sure you want to reset? Current focus progress will be lost.")) {
+                return;
+            }
             if (timerId) clearInterval(timerId);
             if (pingInterval) clearInterval(pingInterval); 
             localStorage.removeItem('arena_end_time');
@@ -586,20 +605,14 @@
         function toggleTimer() {
             if (isRunning) {
                 clearInterval(timerId); 
-                if (pingInterval) clearInterval(pingInterval); 
                 startBtn.innerText = 'Start Focus'; isRunning = false;
             } else {
                 requestNotificationPermission();
-
                 endTime = Date.now() + (timeLeft * 1000);
                 
                 localStorage.setItem('arena_end_time', endTime);
                 localStorage.setItem('arena_category', document.getElementById('task-category').value);
                 localStorage.setItem('arena_duration', duration / 60);
-
-                pingInterval = setInterval(() => {
-                    fetch('/ping', { method: 'POST', cache: 'no-store' }).catch(e => console.log("Heartbeat missed"));
-                }, 5 * 60 * 1000);
 
                 timerId = setInterval(() => {
                     timeLeft = Math.round((endTime - Date.now()) / 1000);
@@ -608,13 +621,13 @@
                         timeLeft = 0; 
                         updateDisplay(); 
                         clearInterval(timerId); 
-                        if (pingInterval) clearInterval(pingInterval);
                         
                         localStorage.removeItem('arena_end_time');
-                        
                         isRunning = false; 
                         startBtn.innerText = 'Start Focus';
                         finishBtn.style.display = 'none';
+                        
+                        isSaving = true; // Bypasses the refresh warning
                         
                         // 1. SAVE TO DATABASE FIRST
                         const selectedCategory = document.getElementById('task-category').value;
@@ -637,7 +650,7 @@
                 }, 1000);
                 
                 startBtn.innerText = 'Pause'; 
-                finishBtn.style.display = 'block'; // Reveal the finish button
+                finishBtn.style.display = 'block'; 
                 isRunning = true;
             }
         }
@@ -654,12 +667,13 @@
 
             if (confirm(`You focused for ${elapsedMinutes} minutes. Save and end session?`)) {
                 clearInterval(timerId);
-                if (pingInterval) clearInterval(pingInterval);
                 localStorage.removeItem('arena_end_time');
                 
                 isRunning = false;
                 startBtn.innerText = 'Start Focus';
                 finishBtn.style.display = 'none';
+                
+                isSaving = true; // Bypasses the refresh warning
                 
                 const selectedCategory = document.getElementById('task-category').value;
                 fetch('/update_time', {
