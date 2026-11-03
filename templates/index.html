@@ -588,17 +588,28 @@
         }
 
         function resetTimer() {
-        // Check if progress exists. If yes, ask for confirmation before resetting.
+            // 1. Ask for confirmation if progress exists
             if (timeLeft < duration && !confirm("⚠️ Are you sure you want to reset? Current focus progress will be lost.")) {
                 return;
             }
+            
+            // 2. Stop the timer loop
             if (timerId) clearInterval(timerId);
-            if (pingInterval) clearInterval(pingInterval); 
+            
+            // 3. Clear memory and state
             localStorage.removeItem('arena_end_time');
             isRunning = false;
             timeLeft = duration;
-            startBtn.innerText = 'Start Focus';
-            finishBtn.style.display = 'none'; // Hide the finish button
+            
+            // 4. SAFELY fetch and update the buttons (Prevents the crash/pause bug)
+            // Note: If your HTML IDs are different, change 'start-btn' and 'finish-btn' to match yours
+            const startBtnElement = document.getElementById('start-btn') || document.querySelector('button[onclick="toggleTimer()"]');
+            const finishBtnElement = document.getElementById('finish-btn') || document.querySelector('button[onclick="finishEarly()"]');
+            
+            if (startBtnElement) startBtnElement.innerText = 'Start Focus';
+            if (finishBtnElement) finishBtnElement.style.display = 'none';
+            
+            // 5. Force the clock display to update back to the starting time
             updateDisplay();
         }
 
