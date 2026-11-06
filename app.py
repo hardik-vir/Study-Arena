@@ -124,7 +124,7 @@ def dashboard():
 
                     if parsed_date:
                         # IMPORTANT: Ensure 'minutes' exactly matches your FocusSession model column name
-                        session_mins = getattr(s, 'minutes', 0)
+                        session_mins = getattr(s, 'duration_minutes', 0)
                         if session_mins is None:
                             session_mins = 0
                             
