@@ -102,34 +102,59 @@ def dashboard():
     # 2. Calculate Heatmap (Last 30 Days - TODAY IS FIRST)
     heatmap_data = []
     try:
-        today = date.today()
-        thirty_days_ago = today - timedelta(days=30)
-        recent_activity = FocusSession.query.filter(FocusSession.user_id == current_user.id, FocusSession.date >= thirty_days_ago).all()
-        
-        active_dates = set()
-        for s in recent_activity:
-            if s.date:
-                if isinstance(s.date, str):
-                    try:
-                        parsed_date = datetime.strptime(s.date.split()[0], '%Y-%m-%d').date()
-                        active_dates.add(parsed_date)
-                    except:
-                        pass
-                else:
-                    active_dates.add(s.date.date())
+            today = date.today()
+            thirty_days_ago = today - timedelta(days=30)
+            recent_activity = FocusSession.query.filter(
+                FocusSession.user_id == current_user.id, 
+                FocusSession.date >= thirty_days_ago
+            ).all()
+            
+            daily_minutes = {}
+            
+            for s in recent_activity:
+                if s.date:
+                    parsed_date = None
+                    if isinstance(s.date, str):
+                        try:
+                            parsed_date = datetime.strptime(s.date.split()[0], '%Y-%m-%d').date()
+                        except:
+                            pass
+                    else:
+                        parsed_date = s.date.date() if hasattr(s.date, 'date') else s.date
 
-        # FIX: We now count backward from today (index 0) to 29 days ago
-        # FIX: We now pass the date string along with the boolean for the modal
-        for i in range(30):
-            d = today - timedelta(days=i)
-            heatmap_data.append({
-                'date': d.strftime('%Y-%m-%d'),
-                'active': d in active_dates
-            })
+                    if parsed_date:
+                        # IMPORTANT: Ensure 'minutes' exactly matches your FocusSession model column name
+                        session_mins = getattr(s, 'minutes', 0)
+                        if session_mins is None:
+                            session_mins = 0
+                            
+                        current_mins = daily_minutes.get(parsed_date, 0)
+                        daily_minutes[parsed_date] = current_mins + session_mins
+
+            for i in range(30):
+                d = today - timedelta(days=i)
+                mins = daily_minutes.get(d, 0)
+                
+                level = 0
+                if 0 < mins < 30:
+                    level = 1
+                elif 30 <= mins < 60:
+                    level = 2
+                elif 60 <= mins < 120:
+                    level = 3
+                elif mins >= 120:
+                    level = 4
+
+                heatmap_data.append({
+                    'date': d.strftime('%Y-%m-%d'),
+                    'minutes': int(mins),
+                    'level': level,
+                    'active': mins > 0
+                })
     except Exception as e:
-        print("Heatmap Error:", e)
-        db.session.rollback()
-        heatmap_data = [False] * 30
+            print(f"Heatmap Error: {e}")
+            db.session.rollback()
+            heatmap_data = [{'date': (date.today() - timedelta(days=i)).strftime('%Y-%m-%d'), 'minutes': 0, 'level': 0, 'active': False} for i in range(30)]
         
     # 3. Fetch Recent History (New Feature for Bento Grid)
     try:

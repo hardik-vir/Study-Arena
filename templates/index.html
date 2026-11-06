@@ -169,10 +169,44 @@
 
         .stat-block { display: flex; justify-content: space-between; padding: 15px; background: var(--input-bg); border-radius: 12px; margin-bottom: 10px; align-items: center; border: 1px solid var(--border-faintest);}
         .current-user-rank { background: var(--primary-glow) !important; border: 1px solid var(--primary); }
+            /*HEATMAPS*/
+        :root {
+            /* BASE COLOR: LeetCode Green in RGB format */
+            --heatmap-green: 1, 179, 40; 
+        }
 
-        .heatmap { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; margin-bottom: 25px; }
-        .day-cell { width: 100%; aspect-ratio: 1; border-radius: 4px; background: var(--border-faint); transition: 0.3s; }
-        .day-active { background: var(--primary); box-shadow: 0 0 10px var(--primary-glow-strong); }
+        .heatmap { 
+            display: grid; 
+            grid-template-columns: repeat(10, 1fr); 
+            gap: 6px; 
+            margin-bottom: 25px; 
+        }
+        
+        .day-cell { 
+            width: 100%; 
+            aspect-ratio: 1; 
+            border-radius: 4px; 
+            background: rgba(255, 255, 255, 0.05); /* Replaces border-faint for a cleaner base */
+            transition: 0.3s; 
+        }
+
+        /* The LeetCode Green Transparency Scale */
+        .day-cell[data-level="1"] { 
+            background-color: rgba(var(--heatmap-green), 0.3) !important; 
+        }
+        .day-cell[data-level="2"] { 
+            background-color: rgba(var(--heatmap-green), 0.6) !important; 
+        }
+        .day-cell[data-level="3"] { 
+            background-color: rgba(var(--heatmap-green), 0.85) !important; 
+        }
+        
+        /* Max Level - Solid Green + Glowing Aura */
+        .day-cell[data-level="4"] { 
+            background-color: rgb(var(--heatmap-green)) !important; 
+            box-shadow: 0 0 10px rgba(var(--heatmap-green), 0.8) !important; 
+        }
+
 
         .history-feed { max-height: 250px; overflow-y: auto; padding-right: 5px; }
         .history-feed::-webkit-scrollbar { width: 6px; }
@@ -385,11 +419,13 @@
                <div class="heatmap">
                     {% for day in heatmap_data %}
                     <div class="day-cell {% if day.active %}day-active{% endif %}" 
+                         data-level="{{ day.level }}"
                          onclick="fetchDayDetails('{{ day.date }}')"
                          style="cursor: pointer;"
-                         title="{{ day.date }}"></div>
+                         title="{{ day.date }}: {{ day.minutes }} mins"></div>
                     {% endfor %}
                 </div>
+                
 
                 <a href="{{ url_for('logout') }}" style="text-decoration: none;"><button class="btn" style="background: var(--border-light); color: var(--text-main);">Logout</button></a>
                 
