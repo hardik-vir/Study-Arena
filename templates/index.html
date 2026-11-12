@@ -123,6 +123,57 @@
             transition: all 0.5s ease; 
         }
 
+        /* === FULL SCREEN FOCUS MODE CSS === */
+        
+        /* The Expand/Collapse Icon Style */
+        .focus-toggle-btn {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-light);
+            color: var(--text-muted);
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        .focus-toggle-btn:hover {
+            background: var(--primary-glow);
+            color: var(--primary);
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        /* The Grid Transformation */
+        .bento-grid {
+            transition: grid-template-columns 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* When Focus Mode is Active */
+        .focus-mode-active .bento-grid {
+            /* Compresses the side columns to 0 width, expands middle column */
+            grid-template-columns: 0fr 1fr 0fr;
+            gap: 0px; 
+        }
+        
+        /* Hide the contents of the side columns */
+        .side-panel {
+            transition: opacity 0.4s ease, padding 0.4s ease, margin 0.4s ease;
+            overflow: hidden; /* Prevents text from spilling out while compressing */
+        }
+        .focus-mode-active .side-panel {
+            opacity: 0;
+            padding: 0;
+            margin: 0;
+            border: none;
+        }
+
         h2 { color: var(--primary); margin-top: 0; font-weight: 800; text-align: center; font-size: 20px; transition: color 0.5s ease; }
         h3 { color: var(--text-muted); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; margin-top: 0; transition: color 0.5s ease; }
 
@@ -300,7 +351,7 @@
         <div class="bento-grid">
             
             <!-- COLUMN 1: LEADERBOARD & INSIGHTS -->
-            <div class="bento-card">
+            <div class="bento-card side-panel">
                 <h2>Global Rankings</h2>
                 <div style="margin-bottom: 30px;">
                     {% for player in top_users %}
@@ -330,8 +381,19 @@
             </div>
 
             <!-- COLUMN 2: THE ARENA TIMER -->
-            <div class="bento-card" style="border: 1px solid var(--primary-glow); box-shadow: 0 0 40px var(--primary-glow-strong);">
-                <h2>Focus Arena</h2>
+            <div class="bento-card" id="focus-arena-card" style="border: 1px solid var(--primary-glow); box-shadow: 0 0 40px var(--primary-glow-strong); position: relative;">
+    
+             <!-- NEW: Full Screen Toggle Icon -->
+            <button onclick="toggleFocusMode()" class="focus-toggle-btn" title="Toggle Absolute Focus">
+            <svg id="expand-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <polyline points="9 21 3 21 3 15"></polyline>
+            <line x1="21" y1="3" x2="14" y2="10"></line>
+            <line x1="3" y1="21" x2="10" y2="14"></line>
+            </svg>
+            </button>
+
+            <h2>Focus Arena</h2>
                 
                 <div style="display: flex; gap: 15px; margin-bottom: 20px;">
                     <div class="tooltip-wrapper" data-tooltip="Select your focus realm 🎯">
@@ -398,7 +460,7 @@
             </div>
 
             <!-- COLUMN 3: PROFILE & HEATMAP -->
-            <div class="bento-card">
+            <div class="bento-card side-panel">
                 <h2 style="color: var(--secondary); margin-bottom: 25px;">{{ user.username }}</h2>
                 
                 <div class="stat-block" style="text-align: center; display: block; border: 1px solid var(--secondary-glow); background: var(--secondary-bg);">
@@ -539,6 +601,40 @@
             }
         });
 
+        // === FULL SCREEN FOCUS ENGINE ===
+        let isFocusMode = false;
+        
+        function toggleFocusMode() {
+            const wrapper = document.querySelector('.dashboard-wrapper');
+            const icon = document.getElementById('expand-icon');
+            
+            isFocusMode = !isFocusMode;
+            
+            if (isFocusMode) {
+                // Activate Focus Mode
+                wrapper.classList.add('focus-mode-active');
+                
+                // Change SVG to "Minimize" arrows
+                icon.innerHTML = `
+                    <polyline points="4 14 10 14 10 20"></polyline>
+                    <polyline points="20 10 14 10 14 4"></polyline>
+                    <line x1="14" y1="10" x2="21" y2="3"></line>
+                    <line x1="3" y1="21" x2="10" y2="14"></line>
+                `;
+            } else {
+                // Return to Normal Dashboard
+                wrapper.classList.remove('focus-mode-active');
+                
+                // Change SVG back to "Expand" arrows
+                icon.innerHTML = `
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <polyline points="9 21 3 21 3 15"></polyline>
+                    <line x1="21" y1="3" x2="14" y2="10"></line>
+                    <line x1="3" y1="21" x2="10" y2="14"></line>
+                `;
+            }
+        }
+        
         // === UI UTILS ===
         let toastTimeout;
         function showToast(message) {
