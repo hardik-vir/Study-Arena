@@ -123,61 +123,6 @@
             transition: all 0.5s ease; 
         }
 
-        /* === FULL SCREEN FOCUS MODE CSS === */ 
-        /* === THE ZEN FOCUS MODE ENGINE === */
-        
-        
-        .focus-toggle-btn {
-            position: absolute; top: 25px; right: 25px; z-index: 10;
-            background: rgba(255,255,255,0.05); border: 1px solid var(--border-light);
-            color: var(--text-muted); border-radius: 8px; width: 36px; height: 36px;
-            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s;
-        }
-        .focus-toggle-btn:hover { background: var(--primary-glow); color: var(--primary); border-color: var(--primary); }
-
-        /* 1. Hide the Navbar smoothly */
-        .navbar { transition: transform 0.4s ease, opacity 0.4s ease; }
-        .focus-mode-active .navbar { transform: translateY(-100%); opacity: 0; pointer-events: none; }
-
-        /* 2. Force grid to a single column and kill the side panels instantly */
-        .focus-mode-active .bento-grid { 
-            grid-template-columns: 1fr !important; 
-            display: flex !important; /* Overrides grid entirely for safety */
-            justify-content: center;
-        }
-        .focus-mode-active .side-panel { display: none !important; }
-
-        /* 3. Hide all the setup clutter */
-        .focus-mode-active .focus-hide { display: none !important; }
-
-        /* 4. Center and expand the Arena container */
-        .focus-mode-active #focus-arena-card {
-            width: 100%;
-            max-width: 800px; /* Prevents it from looking too absurdly wide on desktop */
-            min-height: 70vh;
-            display: flex; flex-direction: column; justify-content: center;
-            margin: 0 auto; padding: 50px 20px;
-        }
-
-        /* 5. Scale the Timer safely */
-        .focus-mode-active .timer-display {
-            transform: scale(1.5); margin: 60px 0 80px 0;
-            transition: transform 0.4s ease;
-        }
-        
-        /* 6. Constrain Start/Reset Buttons */
-        .focus-mode-active #start-btn,
-        .focus-mode-active #finish-btn,
-        .focus-mode-active button[onclick="resetTimer()"] {
-            max-width: 250px; margin: 0 auto;
-        }
-
-        /* Mobile specific fixes */
-        @media (max-width: 850px) {
-            .focus-mode-active .timer-display { transform: scale(1.2); margin: 40px 0 60px 0; }
-            .focus-mode-active #focus-arena-card { min-height: 85vh; border: none; box-shadow: none !important; background: transparent; }
-        }
-
         h2 { color: var(--primary); margin-top: 0; font-weight: 800; text-align: center; font-size: 20px; transition: color 0.5s ease; }
         h3 { color: var(--text-muted); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; margin-top: 0; transition: color 0.5s ease; }
 
@@ -345,9 +290,6 @@
         }
         .time-input:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
         .time-input::-webkit-outer-spin-button, .time-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-
-    
-
     </style>
 </head>
 <body>
@@ -358,7 +300,7 @@
         <div class="bento-grid">
             
             <!-- COLUMN 1: LEADERBOARD & INSIGHTS -->
-            <div class="bento-card side-panel">
+            <div class="bento-card">
                 <h2>Global Rankings</h2>
                 <div style="margin-bottom: 30px;">
                     {% for player in top_users %}
@@ -388,95 +330,8 @@
             </div>
 
             <!-- COLUMN 2: THE ARENA TIMER -->
-    <div class="bento-card" id="focus-arena-card" style="border: 1px solid var(--primary-glow); box-shadow: 0 0 40px var(--primary-glow-strong); position: relative;">
-    
-        <button onclick="toggleFocusMode()" class="focus-toggle-btn" title="Toggle Absolute Focus">
-            <svg id="expand-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 3 21 3 21 9"></polyline>
-            <polyline points="9 21 3 21 3 15"></polyline>
-            <line x1="21" y1="3" x2="14" y2="10"></line>
-            <line x1="3" y1="21" x2="10" y2="14"></line>
-            </svg>
-        </button>
-
-        <h2 class="focus-hide">Focus Arena</h2>
-    
-    <div class="focus-hide" style="display: flex; gap: 15px; margin-bottom: 20px;">
-        <!-- Your dropdown selects remain inside here -->
-    
-         <!-- Added focus-hide to the dropdowns container -->
-        <div class="focus-hide" style="display: flex; gap: 15px; margin-bottom: 20px;">
-        <!-- (Select dropdowns stay here) -->
-        </div>
-    
-        <!-- Added focus-hide to the time presets -->
-        <div class="time-buttons focus-hide">
-        <!-- (Time buttons stay here) -->
-        </div>
-    
-        <div class="timer-display">
-        <!-- (Timer SVG stays here) -->
-        </div>
-
-        <!-- Added action-buttons-container here -->
-        <div class="action-buttons-container" style="display: flex; gap: 10px;">
-        <button class="btn" id="start-btn" ...>Start Focus</button>
-        <button class="btn" id="finish-btn" ...>Finish & Save</button>
-        <button class="btn" onclick="resetTimer()" ...>Reset</button>
-        </div>
-
-        <!-- Added focus-hide to the history section -->
-        <h3 class="focus-hide" style="margin-top: 30px; text-align: center; border-top: 1px solid var(--border-light); padding-top: 20px;">Recent Sessions</h3>
-        <div class="history-feed focus-hide">
-        <!-- (Recent sessions stay here) -->
-        </div>
-        </div>
-    
-        <button onclick="toggleFocusMode()" class="focus-toggle-btn" title="Toggle Absolute Focus">
-        <!-- (Your SVG expand icon stays here) -->
-        </button>
-
-        <h2 class="focus-hide">Focus Arena</h2> <!-- Added focus-hide -->
-    
-         <!-- Added focus-hide to the dropdowns container -->
-        <div class="focus-hide" style="display: flex; gap: 15px; margin-bottom: 20px;">
-        <!-- (Select dropdowns stay here) -->
-        </div>
-    
-        <!-- Added focus-hide to the time presets -->
-        <div class="time-buttons focus-hide">
-        <!-- (Time buttons stay here) -->
-        </div>
-    
-        <div class="timer-display">
-        <!-- (Timer SVG stays here) -->
-        </div>
-
-        <!-- Added action-buttons-container here -->
-        <div class="action-buttons-container" style="display: flex; gap: 10px;">
-        <button class="btn" id="start-btn" ...>Start Focus</button>
-        <button class="btn" id="finish-btn" ...>Finish & Save</button>
-        <button class="btn" onclick="resetTimer()" ...>Reset</button>
-        </div>
-
-        <!-- Added focus-hide to the history section -->
-        <h3 class="focus-hide" style="margin-top: 30px; text-align: center; border-top: 1px solid var(--border-light); padding-top: 20px;">Recent Sessions</h3>
-        <div class="history-feed focus-hide">
-        <!-- (Recent sessions stay here) -->
-        </div>
-        </div>
-    
-             <!-- NEW: Full Screen Toggle Icon -->
-            <button onclick="toggleFocusMode()" class="focus-toggle-btn" title="Toggle Absolute Focus">
-            <svg id="expand-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 3 21 3 21 9"></polyline>
-            <polyline points="9 21 3 21 3 15"></polyline>
-            <line x1="21" y1="3" x2="14" y2="10"></line>
-            <line x1="3" y1="21" x2="10" y2="14"></line>
-            </svg>
-            </button>
-
-            <h2>Focus Arena</h2>
+            <div class="bento-card" style="border: 1px solid var(--primary-glow); box-shadow: 0 0 40px var(--primary-glow-strong);">
+                <h2>Focus Arena</h2>
                 
                 <div style="display: flex; gap: 15px; margin-bottom: 20px;">
                     <div class="tooltip-wrapper" data-tooltip="Select your focus realm 🎯">
@@ -543,7 +398,7 @@
             </div>
 
             <!-- COLUMN 3: PROFILE & HEATMAP -->
-            <div class="bento-card side-panel">
+            <div class="bento-card">
                 <h2 style="color: var(--secondary); margin-bottom: 25px;">{{ user.username }}</h2>
                 
                 <div class="stat-block" style="text-align: center; display: block; border: 1px solid var(--secondary-glow); background: var(--secondary-bg);">
@@ -684,34 +539,6 @@
             }
         });
 
-        // === FULL SCREEN FOCUS ENGINE ===
-        let isFocusMode = false;
-        
-        function toggleFocusMode() {
-            const wrapper = document.querySelector('.dashboard-wrapper');
-            const icon = document.getElementById('expand-icon');
-            
-            isFocusMode = !isFocusMode;
-            
-            if (isFocusMode) {
-                wrapper.classList.add('focus-mode-active');
-                icon.innerHTML = `
-                    <polyline points="4 14 10 14 10 20"></polyline>
-                    <polyline points="20 10 14 10 14 4"></polyline>
-                    <line x1="14" y1="10" x2="21" y2="3"></line>
-                    <line x1="3" y1="21" x2="10" y2="14"></line>
-                `;
-            } else {
-                wrapper.classList.remove('focus-mode-active');
-                icon.innerHTML = `
-                    <polyline points="15 3 21 3 21 9"></polyline>
-                    <polyline points="9 21 3 21 3 15"></polyline>
-                    <line x1="21" y1="3" x2="14" y2="10"></line>
-                    <line x1="3" y1="21" x2="10" y2="14"></line>
-                `;
-            }
-        }
-        
         // === UI UTILS ===
         let toastTimeout;
         function showToast(message) {
@@ -1032,7 +859,6 @@
         }
         function closeDayModal() { document.getElementById('day-modal').classList.remove('show'); }
 
-        
 
     </script>
 </body>
