@@ -123,7 +123,8 @@
             transition: all 0.5s ease; 
         }
 
-        /* === FULL SCREEN FOCUS MODE CSS === */
+        /* === FULL SCREEN FOCUS MODE CSS === */ 
+        /* === THE ZEN FOCUS MODE ENGINE === */
         
         
         .focus-toggle-btn {
@@ -402,6 +403,40 @@
     
     <div class="focus-hide" style="display: flex; gap: 15px; margin-bottom: 20px;">
         <!-- Your dropdown selects remain inside here -->
+    
+         <!-- Added focus-hide to the dropdowns container -->
+        <div class="focus-hide" style="display: flex; gap: 15px; margin-bottom: 20px;">
+        <!-- (Select dropdowns stay here) -->
+        </div>
+    
+        <!-- Added focus-hide to the time presets -->
+        <div class="time-buttons focus-hide">
+        <!-- (Time buttons stay here) -->
+        </div>
+    
+        <div class="timer-display">
+        <!-- (Timer SVG stays here) -->
+        </div>
+
+        <!-- Added action-buttons-container here -->
+        <div class="action-buttons-container" style="display: flex; gap: 10px;">
+        <button class="btn" id="start-btn" ...>Start Focus</button>
+        <button class="btn" id="finish-btn" ...>Finish & Save</button>
+        <button class="btn" onclick="resetTimer()" ...>Reset</button>
+        </div>
+
+        <!-- Added focus-hide to the history section -->
+        <h3 class="focus-hide" style="margin-top: 30px; text-align: center; border-top: 1px solid var(--border-light); padding-top: 20px;">Recent Sessions</h3>
+        <div class="history-feed focus-hide">
+        <!-- (Recent sessions stay here) -->
+        </div>
+        </div>
+    
+        <button onclick="toggleFocusMode()" class="focus-toggle-btn" title="Toggle Absolute Focus">
+        <!-- (Your SVG expand icon stays here) -->
+        </button>
+
+        <h2 class="focus-hide">Focus Arena</h2> <!-- Added focus-hide -->
     
          <!-- Added focus-hide to the dropdowns container -->
         <div class="focus-hide" style="display: flex; gap: 15px; margin-bottom: 20px;">
