@@ -353,6 +353,12 @@
             .bento-card { width: 100%; box-sizing: border-box; }
             .timer-display svg { max-width: 240px; }
             .dashboard-wrapper { padding: 15px 10px; } 
+            .pip-launch-btn { display: none; }
+        }
+
+        /* Hide floating player button on all touchscreens (phones/tablets in landscape) */
+        @media (hover: none) and (pointer: coarse) {
+            .pip-launch-btn { display: none; }
         }
 
         .time-input {
